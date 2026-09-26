@@ -1,5 +1,9 @@
 # Project Checklist
 
+> ⚠️ این چک‌لیست enterprise-level و **بلندمدت** است (Ledger جدا، Holding، Rate versioning، RBAC کامل).
+> برای وضعیت واقعی و اولویت فعلی توسعه، به [`docs/todo.md`](todo.md) مراجعه کنید — آن سند منبع حقیقت فازهای ۰ تا ۳ است.
+> موارد این فایل (Ledger/Holding/Reversal رسمی و ...) را فقط وقتی به audit رسمی نیاز شد اضافه کنید.
+
 ## Phase 0 — Foundation
 - [ ] Scope
 - [ ] Domain glossary

@@ -8,8 +8,8 @@
 
 export const seedGroups = [
   { name: 'خانواده‌ام', isActive: true },
-  { name: 'خانواده‌ من', isActive: true },
-  { name: 'خانواده‌ همسر', isActive: true },
+  { name: 'فامیل من', isActive: true },
+  { name: 'فامیل همسر', isActive: true },
   { name: 'مشتری', isActive: true },
 ]
 
@@ -27,25 +27,24 @@ export const seedPeople = [
     accountType: 'personal_only',
     excessFeeRate: 0.2,
     feeCap: 1_000_000_000,
-    isActive: false,
   },
   {
     name: 'مادر',
-    group: 'خانواده‌ من',
+    group: 'فامیل من',
     accountType: 'fund_and_personal',
     excessFeeRate: 0.2,
     feeCap: 1_000_000_000,
   },
   {
     name: 'پژمان (برادر)',
-    group: 'خانواده‌ من',
+    group: 'فامیل من',
     accountType: 'fund_and_personal',
     excessFeeRate: 0.2,
     feeCap: 1_000_000_000,
   },
   {
-    name: 'عباس (برادر)',
-    group: 'خانواده‌ من',
+    name: 'عباس',
+    group: 'فامیل من',
     accountType: 'fund_and_personal',
     excessFeeRate: 0.2,
     feeCap: 1_000_000_000,

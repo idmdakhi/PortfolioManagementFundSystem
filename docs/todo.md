@@ -171,9 +171,11 @@ fund-manager/
 - [x] Migrations اصلی
 - [x] FeeEngine / NavEngine / GroupAllocator (کد)
 - [x] مستندات اولیه (`docs/`)
-- [ ] **README و SETUP را با ساختار واقعی ریپو یکی کنید** (حذف `apps/api`)
-- [ ] **BusinessRules.md را اصلاح کنید:** گروهی = فقط تجدید سرمایه‌گذاری؛ نقدی حذف
-- [ ] Seed رسمی ۱۰ نفر + ۴ گروه + Settings پیش‌فرض
+- [x] **README و SETUP با ساختار واقعی ریپو یکی شد** (حذف `apps/api`، اصلاح casing `models/services`)
+- [x] **BusinessRules.md اصلاح شد:** گروهی = فقط تجدید سرمایه‌گذاری؛ نقدی حذف (هم‌راستا با کد `group_allocator.ts`)
+- [x] **باگ Seed برطرف شد:** نام گروه `خانواده‌ من`/`خانواده‌ همسر` → `فامیل من`/`فامیل همسر` (هم‌راستا با توافق اکسل)
+- [x] **باگ Seed برطرف شد:** `همسر` با `isActive: false` بود بدون دلیل مستند — به `true` تغییر کرد
+- [ ] Seed را با `node ace db:seed` واقعی تست کنید (فعلاً فقط آرایهٔ داده است، به BaseSeeder وصل نیست)
 - [ ] تست خودکار موتورها در `node ace test` (نه فقط `engines.mjs`)
 - [ ] `.env.example` کامل (DB، نرخ‌های پیش‌فرض)
 
@@ -196,8 +198,8 @@ fund-manager/
 - [ ] `GroupTransactionsController`
   - income / expense / deposit / withdraw / adjustment
   - target: group | specific_people
-  - method: equal | percent | fixed
-  - **همیشه reinvest** (بدون گزینه نقدی)
+  - method: equal (group) | equal/percent/fixed (specific)
+  - **همیشه reinvest** (بدون گزینه نقدی) — طبق `BusinessRules.md` اصلاح‌شده
 - [ ] `PortfolioService`
   - بهای صندوق، واحد، NAV، ارزش صندوق
   - بهای/ارزش شخصی
@@ -232,12 +234,12 @@ fund-manager/
 
 ---
 
-## قوانین کسب‌وکار که باید در docs قفل شوند (جایگزین متن قدیمی)
+## قوانین کسب‌وکار که در docs قفل شد
 
 ```
 1. کارمزد = max(0, min(1%×بهای + سهم‌مازاد، سقف))
    سهم‌مازاد = max(0, سودناخالص − 20%×بهای) × نرخ‌نفر
-2. گروهی: فقط تجدید سرمایه‌گذاری
+2. گروهی: فقط تجدید سرمایه‌گذاری (بدون حالت نقدی)
    - واحددار صندوق → بهای/واحد صندوق
    - فقط شخصی → بهای حساب شخصی
 3. ارزش روز صندوق: آخرین مبلغ غیرخالی
@@ -247,14 +249,23 @@ fund-manager/
 
 ---
 
+## این نوبت چه چیزی اصلاح شد (commit بعدی)
+
+| فایل | تغییر |
+|---|---|
+| `docs/BusinessRules.md` | تناقض Cash/Reinvestment برای Target=Group رفع شد؛ حالا با کد `group_allocator.ts` هم‌راستاست |
+| `README.md` | ساختار مونوریپو (`apps/api`) حذف شد؛ ساختار تخت واقعی جایگزین شد |
+| `SETUP.md` | مسیرها و casing (`app/models` نه `app/Models`) اصلاح شد |
+| `database/seeders/main_seeder.ts` | نام گروه‌ها با توافق اکسل هم‌راستا شد (`فامیل من`/`فامیل همسر`)؛ باگ `همسر: isActive:false` رفع شد |
+
 ## اولویت پیشنهادی این هفته
 
-1. اصلاح `BusinessRules.md` + README ساختار واقعی
-2. Seed
+1. ~~اصلاح `BusinessRules.md` + README ساختار واقعی~~ ✅ انجام شد
+2. وصل کردن Seed واقعی به `node ace db:seed` (فعلاً فقط آرایه export می‌شود)
 3. CRUD People / Groups / Settings
 4. Fund + Group transaction endpoints + PortfolioService
 5. Dashboard overview
 
 `PROJECT_CHECKLIST.md` فعلی خیلی enterprise است (LedgerEntry جدا، Holding، Rate versioning، RBAC کامل). برای محصول شما زود است؛ همان فازهای ۱–۳ بالا را منبع حقیقت قرار دهید و موارد Ledger/Reversal را فقط وقتی به audit رسمی نیاز داشتید اضافه کنید.
 
-اگر بخواهید، متن آمادهٔ `BusinessRules.md` اصلاح‌شده یا اسکلت `PeopleController` + routes را برای پush روی `develop` می‌نویسم.
+اگر بخواهید، مرحلهٔ بعد می‌توانم اسکلت `PeopleController` + `GroupsController` + routes واقعی را برای فاز ۱ بنویسم.
