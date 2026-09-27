@@ -11,7 +11,7 @@
  * (بر اساس accountType فرد).
  */
 
-import type { AllocationMethod, GroupTxType, SpecificShare } from '../Models/group_transaction.ts'
+import type { AllocationMethod, GroupTxType, SpecificShare } from '../models/group_transaction.ts'
 
 export interface ActiveMember {
   personId: number
