@@ -14,7 +14,7 @@ Excel → Parse → Normalize → Validate → Preview → Import → Reconcile
 کارمزد → fees
 
 ## Validation
-تاریخ، شخص، گروه، مبلغ، duplicate، account type، target/effect و allocation total.
+تاریخ، شخص، گروه، مبلغ، duplicate، account type و allocation total. («effect» مستقل وجود ندارد — نگاه کنید BusinessRules.md.)
 
 ## Reconciliation
 مانده صندوق، مانده نقدی، بهای تمام‌شده، ارزش روز و سهم اعضا با workbook مرجع تطبیق داده شود.

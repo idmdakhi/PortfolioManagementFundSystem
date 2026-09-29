@@ -3,7 +3,7 @@
 ## انواع تراکنش‌های پیاده‌سازی‌شده
 
 ### FundTransaction (صندوق)
-**Model**: `app/models/fund_transaction.ts`  
+**Model**: `app/models/fund_transaction.ts`
 **Table**: `fund_transactions`
 
 | Type | Description | Person Required | Amount | Units |
@@ -13,10 +13,12 @@
 | `mark_to_market` | ثبت ارزش روز کل صندوق | ❌ No (null) | ریال (ارزش کل) | ❌ No |
 | `adjustment` | تعدیل / رفع مغایرت | ✅ Yes | ریال (مثبت/منفی) | ❌ Optional |
 
----
+## Group Transaction
+ساختار شامل totalAmount، targetType، targetGroup/persons و allocationMethod است. اثر همیشه
+Reinvestment است — فیلد جداگانه‌ای برای effect/cash وجود ندارد (نگاه کنید به BusinessRules.md).
 
 ### PersonalTransaction (حساب شخصی)
-**Model**: `app/models/personal_transaction.ts`  
+**Model**: `app/models/personal_transaction.ts`
 **Table**: `personal_transactions`
 
 | Type | Description | Person Required | Amount | Asset Type |
@@ -37,7 +39,7 @@
 ---
 
 ### GroupTransaction (گروهی)
-**Model**: `app/models/group_transaction.ts`  
+**Model**: `app/models/group_transaction.ts`
 **Table**: `group_transactions`
 
 | Type | Description | Sign | Target | Allocation |
@@ -79,7 +81,7 @@ Create (Draft) → Validate → Post → Ledger (Not Implemented) → Commit
 
 ### Group Transaction
 ```
-Create → Validate (target, shares, allocation sum) → Allocate (GroupAllocator) → 
+Create → Validate (target, shares, allocation sum) → Allocate (GroupAllocator) →
 Post → Apply to Person (FundTransaction or PersonalTransaction) → Commit
 ```
 
