@@ -3,89 +3,95 @@
  * اجرا: node ace db:seed
  */
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
-import Group from '#models/group'
+import type Group from '#models/group'
 import Person from '#models/person'
 import Setting from '#models/setting'
 
 export const seedGroups = [
-  { name: 'خانواده‌ام', isActive: true },
-  { name: 'فامیل من', isActive: true },
-  { name: 'فامیل همسر', isActive: true },
-  { name: 'مشتری', isActive: true },
+  { id: 0, name: 'مشتری', isActive: true },
+  { id: 1, name: 'خانواده‌ام', isActive: true },
+  { id: 2, name: 'خانواده من', isActive: true },
+  { id: 3, name: 'خانواده همسر', isActive: false },
 ]
-
+type SeedPerson = {
+  name: string
+  groupId: Group['id']
+  accountType: Person['accountType']
+  excessFeeRate: number
+  feeCap: number
+}
 export const seedPeople = [
   {
     name: 'خودم',
-    group: 'خانواده‌ام',
+    groupId: 1,
     accountType: 'fund_and_personal',
     excessFeeRate: 0,
     feeCap: 1_000_000_000,
   },
   {
     name: 'همسر',
-    group: 'خانواده‌ام',
+    groupId: 1,
     accountType: 'personal_only',
     excessFeeRate: 0.2,
     feeCap: 1_000_000_000,
   },
   {
     name: 'مادر',
-    group: 'فامیل من',
+    groupId: 2,
     accountType: 'fund_and_personal',
     excessFeeRate: 0.2,
     feeCap: 1_000_000_000,
   },
   {
     name: 'پژمان (برادر)',
-    group: 'فامیل من',
+    groupId: 2,
     accountType: 'fund_and_personal',
     excessFeeRate: 0.2,
     feeCap: 1_000_000_000,
   },
   {
     name: 'عباس',
-    group: 'فامیل من',
+    groupId: 2,
     accountType: 'fund_and_personal',
     excessFeeRate: 0.2,
     feeCap: 1_000_000_000,
   },
   {
     name: 'زهرا (خاله)',
-    group: 'مشتری',
+    groupId: 4,
     accountType: 'personal_only',
     excessFeeRate: 0.2,
     feeCap: 1_000_000_000,
   },
   {
     name: 'فرزانه (خاله)',
-    group: 'مشتری',
+    groupId: 4,
     accountType: 'personal_only',
     excessFeeRate: 0.2,
     feeCap: 1_000_000_000,
   },
   {
     name: 'محبوبه (عمه)',
-    group: 'مشتری',
+    groupId: 4,
     accountType: 'personal_only',
     excessFeeRate: 0.2,
     feeCap: 1_000_000_000,
   },
   {
     name: 'امینه (خاله)',
-    group: 'مشتری',
+    groupId: 4,
     accountType: 'personal_only',
     excessFeeRate: 0.2,
     feeCap: 1_000_000_000,
   },
   {
     name: 'محمود منتجب',
-    group: 'مشتری',
+    groupId: 4,
     accountType: 'personal_only',
     excessFeeRate: 0.2,
     feeCap: 1_000_000_000,
   },
-]
+] satisfies SeedPerson[]
 
 export const seedSettings = {
   fundName: 'صندوق سبدگردانی خانوادگی',
@@ -105,17 +111,11 @@ export const seedSettings = {
  */
 export default class MainSeeder extends BaseSeeder {
   async run() {
-    const groups = await Group.updateOrCreateMany(
-      'name',
-      seedGroups.map((g) => ({ name: g.name, isActive: g.isActive }))
-    )
-    const groupIdByName = new Map(groups.map((g) => [g.name, g.id]))
-
     await Person.updateOrCreateMany(
       'name',
       seedPeople.map((p) => ({
         name: p.name,
-        groupId: groupIdByName.get(p.group) ?? null,
+        groupId: p.groupId,
         accountType: p.accountType,
         excessFeeRate: p.excessFeeRate,
         feeCap: p.feeCap,

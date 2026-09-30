@@ -3,9 +3,9 @@
  * یا منطق را به JS کپی و با node تست کنید.
  */
 
-import { FeeEngine } from '../app/services/fee_engine.ts'
-import { GroupAllocator } from '../app/services/group_allocator.ts'
-import { NavEngine } from '../app/services/nav_engine.ts'
+import { FeeEngine } from '../../app/services/fee_engine.ts'
+import { GroupAllocator } from '../../app/services/group_allocator.ts'
+import { NavEngine } from '../../app/services/nav_engine.ts'
 
 function assert(cond: boolean, msg: string) {
   if (!cond) throw new Error(msg)
