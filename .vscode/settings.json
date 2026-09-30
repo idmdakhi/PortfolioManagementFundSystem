@@ -4,17 +4,8 @@
   "gitCommitMessageEditor.scopes": [],
   "gitCommitMessageEditor.types": [],
   // "editor.rulers": [50, 72],
-  "files.trimTrailingWhitespace": true,
+  "files.trimTrailingWhitespace": true
   // "gitCommitMessageEditor.scmTitleCommand": "open",
   // "gitCommitMessageEditor.defaultEditorMode": "form",
   // "gitCommitMessageEditor.language": "en"
-  "github.copilot.chat.customOAIModels": [
-    {
-      "modelId": "claude-opus-5",
-      "displayName": "AvalAI Claude Opus 4.8",
-      "endpoint": "https://api.avalai.ir/v1",
-
-      "apiKey": "کلید_API_شما"
-    }
-  ]
 }
