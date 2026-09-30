@@ -54,8 +54,8 @@
 - [ ] Equal allocation
 - [ ] Percentage allocation
 - [ ] Fixed allocation
-- [ ] Cash effect
-- [ ] Reinvestment effect
+- [x] ~~Cash effect~~ — حذف شد؛ طبق قانون قفل‌شده (BusinessRules.md) این مفهوم اصلاً وجود ندارد
+- [ ] Reinvestment effect (تنها حالت موجود — پیاده‌سازی شد در `GroupAllocator` + `@beforeSave` hook روی `GroupTransaction`)
 - [ ] Allocation reconciliation
 
 ## Phase 5 — Valuation

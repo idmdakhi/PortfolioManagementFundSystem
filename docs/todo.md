@@ -175,9 +175,17 @@ fund-manager/
 - [x] **BusinessRules.md اصلاح شد:** گروهی = فقط تجدید سرمایه‌گذاری؛ نقدی حذف (هم‌راستا با کد `group_allocator.ts`)
 - [x] **باگ Seed برطرف شد:** نام گروه `خانواده‌ من`/`خانواده‌ همسر` → `فامیل من`/`فامیل همسر` (هم‌راستا با توافق اکسل)
 - [x] **باگ Seed برطرف شد:** `همسر` با `isActive: false` بود بدون دلیل مستند — به `true` تغییر کرد
-- [ ] Seed را با `node ace db:seed` واقعی تست کنید (فعلاً فقط آرایهٔ داده است، به BaseSeeder وصل نیست)
-- [ ] تست خودکار موتورها در `node ace test` (نه فقط `engines.mjs`)
-- [ ] `.env.example` کامل (DB، نرخ‌های پیش‌فرض)
+- [x] **باگ بحرانی رفع شد:** `docs/Testing.md` سناریوی طلایی را برعکس نوشته بود (Group+Reinvestment را validation error می‌دانست) — اصلاح شد
+- [x] **باگ اجرایی رفع شد:** مسیر importهای `tests/engines.spec.ts` غلط بود (`../../` به‌جای `../`) — تست‌ها را واقعاً اجرا کردم، الان هر ۸ assertion پاس می‌شود
+- [x] **تناقض باقی‌مانده رفع شد:** ارجاع‌های stale به `effectType`/`target-effect` در `Migration.md` و `Transactions.md`
+- [x] **بنر دو-لایگی مستندات** به `docs/README.md` اضافه شد (enterprise-aspirational در برابر منبع حقیقت فعلی)
+- [x] **Seed واقعاً به `BaseSeeder` وصل شد** و با `node ace db:seed` روی DB واقعی اجرا و تأیید شد (نه فقط آرایهٔ export‌شده)
+- [x] **همهٔ ۷ migration دامنه واقعاً روی SQLite اجرا شدند** (`node ace migration:run` — موفق، صفر خطا) + rollback هر دو migration جدید هم تست شد
+- [x] **ریسک `people.name UNIQUE` رفع شد:** migration جدید آن را برداشت و index معمولی جایگزین کرد
+- [x] **ریسک نبود ستون reversal رفع شد:** `status`/`reversed_at`/`reversal_of_id` به هر سه جدول تراکنشی اضافه شد (تا وعدهٔ BusinessRules.md واقعاً قابل‌اجرا باشد)
+- [x] **ریسک عدم اعتبارسنجی target/method رفع شد:** یک `@beforeSave` hook روی `GroupTransaction` اضافه شد که `group+equal` را می‌پذیرد و `group+percent` یا `group` بدون `groupId` را رد می‌کند — با یک ace command موقت واقعاً تست شد (۳ سناریو، هر سه درست عمل کردند)
+- [ ] تست خودکار موتورها در `node ace test` (Japa) — فعلاً فقط اسکریپت مستقل `engines.spec.ts`
+- [ ] `.env.example` کامل (نرخ‌های پیش‌فرض هنوز آن‌جا نیستند)
 
 ### فاز ۱ — هسته داده (CRUD) — **اولویت بعدی**
 
@@ -251,17 +259,39 @@ fund-manager/
 
 ## این نوبت چه چیزی اصلاح شد (commit بعدی)
 
+**نوبت اول (مستندات + seed):**
+
 | فایل | تغییر |
 |---|---|
 | `docs/BusinessRules.md` | تناقض Cash/Reinvestment برای Target=Group رفع شد؛ حالا با کد `group_allocator.ts` هم‌راستاست |
 | `README.md` | ساختار مونوریپو (`apps/api`) حذف شد؛ ساختار تخت واقعی جایگزین شد |
 | `SETUP.md` | مسیرها و casing (`app/models` نه `app/Models`) اصلاح شد |
-| `database/seeders/main_seeder.ts` | نام گروه‌ها با توافق اکسل هم‌راستا شد (`فامیل من`/`فامیل همسر`)؛ باگ `همسر: isActive:false` رفع شد |
+| `database/seeders/main_seeder.ts` | نام گروه‌ها با توافق اکسل هم‌راستا شد؛ باگ `همسر: isActive:false` رفع شد |
+
+**نوبت دوم (بازبینی کامل کد — نه فقط مستندات):**
+
+| فایل | تغییر |
+|---|---|
+| `tests/engines.spec.ts` | مسیر import خراب (`../../`) اصلاح شد؛ با اجرای واقعی تأیید شد |
+| `docs/Testing.md` | سناریوی طلایی برعکس بود (Group+Reinvestment=error) — اصلاح شد |
+| `docs/Migration.md`, `docs/Transactions.md` | ارجاع stale به `effectType` حذف شد |
+| `docs/README.md` | بنر دو-لایگی مستندات (واقعی در برابر enterprise-aspirational) اضافه شد |
+
+**نوبت سوم (رفع ریسک‌ها با اجرای واقعی روی DB):**
+
+| فایل | تغییر |
+|---|---|
+| `database/seeders/main_seeder.ts` | کلاس `MainSeeder extends BaseSeeder` اضافه شد؛ با `node ace db:seed` روی DB واقعی تست شد |
+| `database/migrations/*_alter_people_drop_unique_name.ts` | UNIQUE از `people.name` برداشته شد (ریسک هم‌نامی)؛ اجرا و rollback تست شد |
+| `database/migrations/*_alter_transactions_add_reversal_columns.ts` | ستون‌های `status`/`reversed_at`/`reversal_of_id` به هر ۳ جدول تراکنشی اضافه شد |
+| `app/models/{fund,personal,group}_transaction.ts` | فیلدهای reversal اضافه شد؛ `GroupTransaction` یک `@beforeSave` hook گرفت که ناسازگاری target/method را رد می‌کند (با ace command موقت تست و تأیید شد، سپس حذف شد) |
+
+همهٔ موارد بالا **واقعاً اجرا شدند** (نه فقط نوشته شدند): `npm install` (با `--nodedir=/usr` برای دور زدن نبود دسترسی شبکه به nodejs.org)، `node ace migration:run`، `node ace db:seed`، کوئری مستقیم SQLite برای تأیید داده، و یک ace command موقت برای تست hook مدل.
 
 ## اولویت پیشنهادی این هفته
 
-1. ~~اصلاح `BusinessRules.md` + README ساختار واقعی~~ ✅ انجام شد
-2. وصل کردن Seed واقعی به `node ace db:seed` (فعلاً فقط آرایه export می‌شود)
+1. ~~اصلاح `BusinessRules.md` + README ساختار واقعی~~ ✅
+2. ~~وصل کردن Seed واقعی به `node ace db:seed`~~ ✅
 3. CRUD People / Groups / Settings
 4. Fund + Group transaction endpoints + PortfolioService
 5. Dashboard overview

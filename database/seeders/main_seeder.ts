@@ -1,10 +1,11 @@
 /**
  * Seed اولیه بر اساس لیست توافق‌شده در اکسل
  * اجرا: node ace db:seed
- *
- * توجه: این فایل اسکلت است؛ بعد از `node ace init` و تنظیم Lucid
- * باید از BaseSeeder رسمی Adonis استفاده شود.
  */
+import { BaseSeeder } from '@adonisjs/lucid/seeders'
+import Group from '#models/group'
+import Person from '#models/person'
+import Setting from '#models/setting'
 
 export const seedGroups = [
   { name: 'خانواده‌ام', isActive: true },
@@ -96,4 +97,38 @@ export const seedSettings = {
   managerFixedFeeRate: 0.01,
   defaultExcessFeeRate: 0.2,
   defaultFeeCap: 1_000_000_000,
+}
+
+/**
+ * اتصال واقعی به Adonis: `node ace db:seed` این کلاس را اجرا می‌کند.
+ * idempotent است — با اجرای دوباره رکورد تکراری نمی‌سازد (بر اساس نام).
+ */
+export default class MainSeeder extends BaseSeeder {
+  async run() {
+    const groups = await Group.updateOrCreateMany(
+      'name',
+      seedGroups.map((g) => ({ name: g.name, isActive: g.isActive }))
+    )
+    const groupIdByName = new Map(groups.map((g) => [g.name, g.id]))
+
+    await Person.updateOrCreateMany(
+      'name',
+      seedPeople.map((p) => ({
+        name: p.name,
+        groupId: groupIdByName.get(p.group) ?? null,
+        accountType: p.accountType,
+        excessFeeRate: p.excessFeeRate,
+        feeCap: p.feeCap,
+        isActive: true,
+      }))
+    )
+
+    const existingSetting = await Setting.first()
+    if (existingSetting) {
+      existingSetting.merge(seedSettings)
+      await existingSetting.save()
+    } else {
+      await Setting.create(seedSettings)
+    }
+  }
 }

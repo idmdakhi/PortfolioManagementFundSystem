@@ -37,6 +37,17 @@ export default class FundTransaction extends BaseModel {
   @column()
   declare description: string | null
 
+  /** posted (پیش‌فرض) یا reversed — طبق BusinessRules.md: تراکنش posted حذف نمی‌شود */
+  @column()
+  declare status: 'posted' | 'reversed'
+
+  @column.dateTime()
+  declare reversedAt: DateTime | null
+
+  /** اگر این ردیف خودش اصلاحِ (reversal) یک ردیف دیگر است */
+  @column()
+  declare reversalOfId: number | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

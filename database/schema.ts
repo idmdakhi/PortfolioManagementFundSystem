@@ -7,6 +7,29 @@
 import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
+export class AnnualSnapshotSchema extends BaseModel {
+  static $columns = ['createdAt', 'feeCharged', 'fundValue', 'id', 'notes', 'personId', 'personalValue', 'totalAum', 'year'] as const
+  $columns = AnnualSnapshotSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare feeCharged: bigint | number
+  @column()
+  declare fundValue: bigint | number
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare notes: string | null
+  @column()
+  declare personId: number
+  @column()
+  declare personalValue: bigint | number
+  @column()
+  declare totalAum: bigint | number
+  @column()
+  declare year: number
+}
+
 export class AuthAccessTokenSchema extends BaseModel {
   static $columns = ['abilities', 'createdAt', 'expiresAt', 'hash', 'id', 'lastUsedAt', 'name', 'tokenableId', 'type', 'updatedAt'] as const
   $columns = AuthAccessTokenSchema.$columns
@@ -30,6 +53,160 @@ export class AuthAccessTokenSchema extends BaseModel {
   declare type: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
+}
+
+export class FundTransactionSchema extends BaseModel {
+  static $columns = ['amount', 'createdAt', 'description', 'id', 'personId', 'reversalOfId', 'reversedAt', 'status', 'txDate', 'type', 'units'] as const
+  $columns = FundTransactionSchema.$columns
+  @column()
+  declare amount: bigint | number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare description: string | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare personId: number | null
+  @column()
+  declare reversalOfId: number | null
+  @column.dateTime()
+  declare reversedAt: DateTime | null
+  @column()
+  declare status: string
+  @column()
+  declare txDate: string
+  @column()
+  declare type: string
+  @column()
+  declare units: number | null
+}
+
+export class GroupTransactionSchema extends BaseModel {
+  static $columns = ['allocationMethod', 'createdAt', 'description', 'groupId', 'id', 'reversalOfId', 'reversedAt', 'specificShares', 'status', 'targetType', 'totalAmount', 'txDate', 'type'] as const
+  $columns = GroupTransactionSchema.$columns
+  @column()
+  declare allocationMethod: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare description: string | null
+  @column()
+  declare groupId: number | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare reversalOfId: number | null
+  @column.dateTime()
+  declare reversedAt: DateTime | null
+  @column()
+  declare specificShares: string
+  @column()
+  declare status: string
+  @column()
+  declare targetType: string
+  @column()
+  declare totalAmount: bigint | number
+  @column()
+  declare txDate: string
+  @column()
+  declare type: string
+}
+
+export class GroupSchema extends BaseModel {
+  static $columns = ['createdAt', 'id', 'isActive', 'name', 'notes', 'updatedAt'] as const
+  $columns = GroupSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare isActive: boolean
+  @column()
+  declare name: string
+  @column()
+  declare notes: string | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+}
+
+export class PersonSchema extends BaseModel {
+  static $columns = ['accountType', 'createdAt', 'excessFeeRate', 'feeCap', 'groupId', 'id', 'isActive', 'name', 'notes', 'updatedAt'] as const
+  $columns = PersonSchema.$columns
+  @column()
+  declare accountType: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare excessFeeRate: number
+  @column()
+  declare feeCap: bigint | number
+  @column()
+  declare groupId: number | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare isActive: boolean
+  @column()
+  declare name: string
+  @column()
+  declare notes: string | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+}
+
+export class PersonalTransactionSchema extends BaseModel {
+  static $columns = ['amount', 'assetType', 'createdAt', 'description', 'id', 'personId', 'reversalOfId', 'reversedAt', 'status', 'txDate', 'type'] as const
+  $columns = PersonalTransactionSchema.$columns
+  @column()
+  declare amount: bigint | number
+  @column()
+  declare assetType: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare description: string | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare personId: number
+  @column()
+  declare reversalOfId: number | null
+  @column.dateTime()
+  declare reversedAt: DateTime | null
+  @column()
+  declare status: string
+  @column()
+  declare txDate: string
+  @column()
+  declare type: string
+}
+
+export class SettingSchema extends BaseModel {
+  static $columns = ['baseUnitPrice', 'clientFixedRate', 'currency', 'dateType', 'defaultExcessFeeRate', 'defaultFeeCap', 'fundName', 'id', 'managerFixedFeeRate', 'reportYear', 'updatedAt'] as const
+  $columns = SettingSchema.$columns
+  @column()
+  declare baseUnitPrice: bigint | number
+  @column()
+  declare clientFixedRate: number
+  @column()
+  declare currency: string
+  @column()
+  declare dateType: string
+  @column()
+  declare defaultExcessFeeRate: number
+  @column()
+  declare defaultFeeCap: bigint | number
+  @column()
+  declare fundName: string
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare managerFixedFeeRate: number
+  @column()
+  declare reportYear: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
 }
 
 export class UserSchema extends BaseModel {

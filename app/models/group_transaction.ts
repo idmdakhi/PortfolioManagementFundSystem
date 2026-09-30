@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
+import { BaseModel, column, belongsTo, beforeSave } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Group from './group.js'
 
@@ -24,6 +24,14 @@ export interface SpecificShare {
   value: number
 }
 
+/**
+ * قانون قفل‌شده (BusinessRules.md): اثر همیشه تجدید سرمایه‌گذاری است — مفهوم «نقدی» وجود ندارد.
+ *   - واحددار صندوق (accountType=fund_and_personal) → افزایش/کاهش بهای تمام‌شده و واحد صندوق
+ *   - فقط شخصی (accountType=personal_only) → افزایش/کاهش بهای تمام‌شده حساب شخصی
+ * قانون دوم: targetType='group' فقط با allocationMethod='equal' معتبر است (چون اعضای گروه
+ * تعداد متغیر دارند و تعریف درصد/مبلغ ثابت به‌ازای هرکدام معنی ندارد). این قانون در beforeSave
+ * زیر enforce می‌شود تا یک ردیف ناسازگار (مثلاً group + percent) هرگز ذخیره نشود.
+ */
 export default class GroupTransaction extends BaseModel {
   static table = 'group_transactions'
 
@@ -62,17 +70,50 @@ export default class GroupTransaction extends BaseModel {
   @column()
   declare allocationMethod: AllocationMethod
 
-  /**
-   * همیشه تجدید سرمایه‌گذاری (نقدی حذف شده):
-   * واحددار صندوق → افزایش بهای/واحد صندوق
-   * فقط شخصی → افزایش بهای حساب شخصی
-   */
   @column()
   declare description: string | null
+
+  /** posted (پیش‌فرض) یا reversed */
+  @column()
+  declare status: 'posted' | 'reversed'
+
+  @column.dateTime()
+  declare reversedAt: DateTime | null
+
+  @column()
+  declare reversalOfId: number | null
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
   @belongsTo(() => Group)
   declare group: BelongsTo<typeof Group>
+
+  /**
+   * سپر دفاعی سطح ORM برای ریسک شناسایی‌شده در بازبینی: DB به‌تنهایی تضمین نمی‌کند
+   * که targetType/allocationMethod/groupId/specificShares با هم سازگار باشند.
+   * این hook حتی اگر یک Controller آینده این چک را فراموش کند، از ذخیرهٔ ردیف
+   * ناسازگار جلوگیری می‌کند. (پیام‌های کاربرپسندتر باید در Validator لایهٔ HTTP باشد؛
+   * این‌جا خط دفاعی نهایی است.)
+   */
+  @beforeSave()
+  static async validateTargetConsistency(tx: GroupTransaction) {
+    if (tx.targetType === 'group') {
+      if (!tx.groupId) {
+        throw new Error('GroupTransaction: targetType=group requires groupId.')
+      }
+      if (tx.allocationMethod !== 'equal') {
+        throw new Error(
+          'GroupTransaction: targetType=group فقط با allocationMethod=equal مجاز است.'
+        )
+      }
+    } else if (tx.targetType === 'specific_people') {
+      if (tx.groupId) {
+        throw new Error('GroupTransaction: targetType=specific_people نباید groupId داشته باشد.')
+      }
+      if (!tx.specificShares || tx.specificShares.length === 0) {
+        throw new Error('GroupTransaction: targetType=specific_people به specificShares نیاز دارد.')
+      }
+    }
+  }
 }

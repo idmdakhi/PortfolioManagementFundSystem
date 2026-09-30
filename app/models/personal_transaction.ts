@@ -34,6 +34,16 @@ export default class PersonalTransaction extends BaseModel {
   @column()
   declare description: string | null
 
+  /** posted (پیش‌فرض) یا reversed */
+  @column()
+  declare status: 'posted' | 'reversed'
+
+  @column.dateTime()
+  declare reversedAt: DateTime | null
+
+  @column()
+  declare reversalOfId: number | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
