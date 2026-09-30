@@ -8,7 +8,7 @@ body:
       value: |
         Use this template for **substantial** changes that need design discussion before implementation.
 
-        Smaller ideas belong in a [Feature request](https://github.com/idmdakhi/gitwe/issues/new?template=feature_request.yml).
+        Smaller ideas belong in a [Feature request](https://github.com/idmdakhi//issues/new?template=feature_request.yml).
 
         After the issue is opened, a maintainer may ask you to turn it into a full document under `docs/rfcs/`.
 
@@ -76,7 +76,7 @@ body:
         ```
         ```
         # example CLI
-        gitwe finish --push --push-to origin,mirror
+         finish --push --push-to origin,mirror
         ```
     validations:
       required: true

@@ -22,10 +22,10 @@ body:
     id: reproduce
     attributes:
       label: To reproduce
-      description: Steps to reproduce the behaviour, ideally with the exact `gitwe` command(s) you ran.
+      description: Steps to reproduce the behaviour, ideally with the exact `` command(s) you ran.
       placeholder: |
-        gitwe start feature login
-        gitwe finish feature/login
+         start feature login
+         finish feature/login
       render: shell
     validations:
       required: true
@@ -48,10 +48,10 @@ body:
       required: true
 
   - type: input
-    id: gitwe-version
+    id: -version
     attributes:
-      label: gitwe version
-      description: Run `gitwe --version` or `gitwe version`.
+      label:  version
+      description: Run ` --version` or ` version`.
       placeholder: 1.0.0
     validations:
       required: true
@@ -99,5 +99,5 @@ body:
     attributes:
       label: Additional context
       description: |
-        Anything else that might help — logs (run with `GITWE_DEBUG=1` or `-v` for verbose git command logging), screenshots, related issues, etc.
+        Anything else that might help — logs (run with `_DEBUG=1` or `-v` for verbose git command logging), screenshots, related issues, etc.
       placeholder: Logs, links, screenshots…

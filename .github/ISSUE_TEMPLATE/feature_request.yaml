@@ -7,9 +7,9 @@ body:
     attributes:
       value: |
         Before opening a feature request, please check:
-        - [ROADMAP.md](https://github.com/idmdakhi/gitwe/blob/main/ROADMAP.md)
-        - [TODO.md](https://github.com/idmdakhi/gitwe/blob/main/TODO.md)
-        - [docs/rfcs/](https://github.com/idmdakhi/gitwe/tree/main/docs/rfcs)
+        - [ROADMAP.md](https://github.com/idmdakhi//blob/main/ROADMAP.md)
+        - [TODO.md](https://github.com/idmdakhi//blob/main/TODO.md)
+        - [docs/rfcs/](https://github.com/idmdakhi//tree/main/docs/rfcs)
 
         If the idea is large (new strategy, multi-remote behaviour, plugin-like extension…), consider writing an RFC instead.
 
@@ -18,7 +18,7 @@ body:
     attributes:
       label: What problem does this solve?
       description: A clear description of the problem or limitation you're running into.
-      placeholder: I need to … because currently gitwe forces me to …
+      placeholder: I need to … because currently  forces me to …
     validations:
       required: true
 

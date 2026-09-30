@@ -7,8 +7,8 @@ body:
     attributes:
       value: |
         Use this template when you want to claim or track an item that is already written in
-        [TODO.md](https://github.com/idmdakhi/gitwe/blob/main/TODO.md) or
-        [ROADMAP.md](https://github.com/idmdakhi/gitwe/blob/main/ROADMAP.md).
+        [TODO.md](https://github.com/idmdakhi//blob/main/TODO.md) or
+        [ROADMAP.md](https://github.com/idmdakhi//blob/main/ROADMAP.md).
 
         For brand-new ideas use a Feature request or an RFC instead.
 
@@ -17,7 +17,7 @@ body:
     attributes:
       label: Reference in TODO / ROADMAP
       description: Copy the exact line or section title.
-      placeholder: "P1 – Implement gitwe doctor --fix (RFC-0003)"
+      placeholder: "P1 – Implement  doctor --fix (RFC-0003)"
     validations:
       required: true
 
