@@ -288,13 +288,30 @@ fund-manager/
 
 همهٔ موارد بالا **واقعاً اجرا شدند** (نه فقط نوشته شدند): `npm install` (با `--nodedir=/usr` برای دور زدن نبود دسترسی شبکه به nodejs.org)، `node ace migration:run`، `node ace db:seed`، کوئری مستقیم SQLite برای تأیید داده، و یک ace command موقت برای تست hook مدل.
 
+**نوبت چهارم (ادغام Electron — واقعاً پیاده‌سازی و با GUI واقعی تست شد):**
+
+| چیز | نتیجه |
+|---|---|
+| معماری | Adonis درون همان پروسس Electron بوت می‌شود (بدون HTTP)؛ IPC = Controller |
+| `electron/main.ts` + `preload.cts` + `ipc/{people,groups}.ts` | نوشته و کامپایل شد |
+| `renderer/` (Vue 3 + Tailwind v4 + Vite) | صفحهٔ افراد (CRUD کامل) ساخته شد |
+| باگ کشف‌شده | preload با ESM خام کار نمی‌کرد → به `.cts`/CommonJS تغییر کرد |
+| باگ کشف‌شده | `config/database.ts` اصلاً `DB_PATH` را نمی‌خواند → اصلاح شد |
+| باگ کشف‌شده | فایل‌های `.js` باقی‌مانده در `app/models/` باعث resolve شدن به مدل‌های خالی شدند → پاک شد + `.gitignore` سخت‌گیرتر شد |
+| باگ کشف‌شده | `import type ... from '../Models/...'` (حرف بزرگ غلط) فقط زیر `tsc` واقعی لو رفت، نه زیر strip-types | 
+| باگ کشف‌شده | تایپ ضعیف `seedPeople` (`accountType: string` به‌جای union) — `node ace build` واقعی آن را گرفت |
+| تست نهایی | Electron واقعی زیر Xvfb اجرا شد؛ Vue بارگذاری شد؛ IPC واقعی صدا خورد؛ نتیجه از SQLite واقعی برگشت: `{peopleCount:10, firstName:"خودم", groupsCount:4}` |
+
+جزئیات کامل: [`docs/Electron.md`](Electron.md)
+
 ## اولویت پیشنهادی این هفته
 
 1. ~~اصلاح `BusinessRules.md` + README ساختار واقعی~~ ✅
 2. ~~وصل کردن Seed واقعی به `node ace db:seed`~~ ✅
-3. CRUD People / Groups / Settings
-4. Fund + Group transaction endpoints + PortfolioService
-5. Dashboard overview
+3. ~~برش عمودی Electron (افراد + گروه‌ها، CRUD کامل، تست با GUI واقعی)~~ ✅
+4. همان الگو را برای تراکنش‌های صندوق/شخصی/گروهی و تنظیمات تکرار کنید
+5. صفحهٔ داشبورد (overview + فردی) در Vue + کارمزد
+6. آیکون واقعی اپ + تست واقعی `electron:pack` روی ویندوز (در این سندباکس قابل تست نبود)
 
 `PROJECT_CHECKLIST.md` فعلی خیلی enterprise است (LedgerEntry جدا، Holding، Rate versioning، RBAC کامل). برای محصول شما زود است؛ همان فازهای ۱–۳ بالا را منبع حقیقت قرار دهید و موارد Ledger/Reversal را فقط وقتی به audit رسمی نیاز داشتید اضافه کنید.
 

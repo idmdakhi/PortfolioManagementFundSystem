@@ -27,5 +27,6 @@
 - Testing.md
 - Migration.md
 - PROJECT_CHECKLIST.md
+- Electron.md (لایهٔ واقعی — فاز ۴، نتیجهٔ پیاده‌سازی و تست واقعی)
 
 اصل کلیدی: منطق مالی در Domain/Application است؛ UI فقط ورودی و نمایش را مدیریت می‌کند.

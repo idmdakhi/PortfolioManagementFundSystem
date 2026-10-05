@@ -4,7 +4,7 @@
  */
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import type Group from '#models/group'
-import Person from '#models/person'
+import Person, { type AccountType } from '#models/person'
 import Setting from '#models/setting'
 
 export const seedGroups = [
@@ -16,7 +16,7 @@ export const seedGroups = [
 type SeedPerson = {
   name: string
   groupId: Group['id']
-  accountType: Person['accountType']
+  accountType: AccountType
   excessFeeRate: number
   feeCap: number
 }

@@ -1,0 +1,41 @@
+appId: com.family.sabadgardan
+productName: صندوق سبدگردانی خانوادگی
+directories:
+  output: dist
+
+# نکته: چون Adonis درون همان پروسس Electron بوت می‌شود (نه سرور HTTP جدا)،
+# کل backend کامپایل‌شده + node_modules باید داخل بسته‌بندی باشد.
+files:
+  - build/electron/electron/**/*
+  - build-renderer/**/*
+  - package.json
+
+extraResources:
+  # نسخهٔ کامپایل‌شدهٔ Adonis (معادل build/ ریشه) زیر resources/backend قرار می‌گیرد
+  - from: build
+    to: backend
+    filter: ['**/*', '!electron/**/*']
+  # یک دیتابیس خالیِ migration‌شده برای اولین اجرای کاربر (به DB userData کپی می‌شود)
+  - from: tmp/db-template.sqlite3
+    to: db-template.sqlite3
+
+asarUnpack:
+  # better-sqlite3 یک native module است؛ از داخل asar قابل اجرا نیست
+  - '**/better-sqlite3/**/*'
+
+win:
+  target: nsis
+  # TODO: آیکون واقعی اضافه نشده؛ فعلاً آیکون پیش‌فرض Electron استفاده می‌شود.
+  # وقتی icon.ico آماده شد: icon: build-assets/icon.ico
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+
+linux:
+  target: AppImage
+  category: Office
+
+mac:
+  target: dmg
+  category: public.app-category.finance

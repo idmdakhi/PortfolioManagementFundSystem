@@ -15,7 +15,12 @@ const dbConfig = defineConfig({
       client: 'better-sqlite3',
 
       connection: {
-        filename: app.tmpPath('db.sqlite3'),
+        /**
+         * DB_PATH برای Electron: main.ts قبل از بوت کردن Adonis این env را با
+         * مسیر userData تنظیم می‌کند (تا دیتابیس با آپدیت اپ پاک نشود).
+         * بدون آن (dev معمولی، migration، seed، تست) همان tmp/db.sqlite3 قبلی.
+         */
+        filename: process.env.DB_PATH || app.tmpPath('db.sqlite3'),
       },
 
       /**

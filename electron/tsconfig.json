@@ -1,0 +1,9 @@
+{
+  "extends": "@adonisjs/tsconfig/tsconfig.app.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "outDir": "../build/electron",
+    "types": ["node", "electron"]
+  },
+  "include": ["./**/*.ts", "./**/*.cts"]
+}
