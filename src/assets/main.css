@@ -1,0 +1,20 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body { margin: 0; font-family: 'Vazirmatn', 'Tahoma', 'Segoe UI', sans-serif; -webkit-font-smoothing: antialiased; background: #f1f5f9; color: #0f172a; line-height: 1.6; }
+.number, td, th { font-variant-numeric: tabular-nums; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #e2e8f0; }
+::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+.btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; border: none; border-radius: 6px; font-size: 0.9rem; font-family: inherit; cursor: pointer; transition: all 0.15s; text-decoration: none; }
+.btn-primary { background: #2563eb; color: white; }
+.btn-primary:hover { background: #1d4ed8; }
+.btn-secondary { background: #e2e8f0; color: #334155; }
+.btn-secondary:hover { background: #cbd5e1; }
+.btn-danger { background: #dc2626; color: white; }
+.btn-danger:hover { background: #b91c1c; }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.card { background: white; border-radius: 10px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { padding: 0.65rem 0.85rem; text-align: right; border-bottom: 1px solid #e2e8f0; }
+.table th { background: #f8fafc; font-weight: 600; color: #475569; font-size: 0.85rem; }
+.table tr:hover td { background: #f8fafc; }

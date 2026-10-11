@@ -1,15 +1,23 @@
 {
-  "extends": "@adonisjs/tsconfig/tsconfig.app.json",
   "compilerOptions": {
-    "rootDir": "./",
-    "jsx": "react",
-    "outDir": "./build"
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "jsx": "preserve",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@electron/*": ["electron/*"]
+    },
+    "types": ["vite/client"],
+    "lib": ["ESNext", "DOM", "DOM.Iterable"]
   },
-  "exclude": [
-    "node_modules",
-    "build",
-    "build-renderer",
-    "renderer",
-    "electron"
-  ]
+  "include": ["src/**/*.ts", "src/**/*.vue", "electron/**/*.ts", "scripts/**/*.ts", "database/**/*.ts"],
+  "exclude": ["node_modules", "out", "dist"]
 }
