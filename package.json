@@ -8,11 +8,10 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "postinstall": "electron-builder install-app-deps",
-    "db:init": "tsx scripts/init-db.ts",
     "typecheck": "vue-tsc --noEmit",
     "test": "npm run test:unit && npm run test:db",
-    "test:unit": "vitest run tests/calculations.test.ts",
-    "test:db": "npm rebuild better-sqlite3 && vitest run tests/ledger.test.ts"
+    "test:unit": "vitest run tests/core",
+    "test:db": "npm rebuild better-sqlite3 && vitest run tests/data"
   },
   "dependencies": {
     "better-sqlite3": "^12.9.0",
@@ -25,7 +24,6 @@
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.12",
     "@vitejs/plugin-vue": "^5.2.1",
-    "drizzle-kit": "^0.30.1",
     "electron": "^33.2.1",
     "electron-builder": "^25.1.8",
     "electron-vite": "^2.3.0",

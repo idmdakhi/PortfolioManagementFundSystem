@@ -39,3 +39,7 @@ yarn-error.log
 # Platform specific
 .DS_Store
 *.patch
+
+# Local data (database, backups, reports) — never commit
+storage/
+out/

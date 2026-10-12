@@ -4,11 +4,16 @@ export const api = {
   get transactions() { return window.api.transactions },
   get settings() { return window.api.settings },
   get periods() { return window.api.periods },
-  get valuations() { return window.api.valuations }
+  get valuations() { return window.api.valuations },
+  get data() { return window.api.data }
 }
 export function formatRial(value: number | null | undefined): string {
   if (value == null || isNaN(value)) return '—'
   return new Intl.NumberFormat('fa-IR').format(Math.round(value))
+}
+export function formatUnits(value: number | null | undefined): string {
+  if (value == null || isNaN(value)) return '—'
+  return new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 6 }).format(value)
 }
 export function formatPercent(value: number | null | undefined, digits = 1): string {
   if (value == null || isNaN(value)) return '—'

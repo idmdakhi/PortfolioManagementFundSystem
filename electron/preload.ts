@@ -14,9 +14,7 @@ const api = {
   accounts: {
     create: (data: any) => ipcRenderer.invoke('accounts:create', data),
     update: (id: number, data: any) => ipcRenderer.invoke('accounts:update', id, data),
-    get: (id: number) => ipcRenderer.invoke('accounts:get', id),
-    getUnits: (accountId: number) => ipcRenderer.invoke('accounts:getUnits', accountId),
-    setUnits: (accountId: number, units: number) => ipcRenderer.invoke('accounts:setUnits', accountId, units)
+    get: (id: number) => ipcRenderer.invoke('accounts:get', id)
   },
   transactions: {
     list: (filters?: any) => ipcRenderer.invoke('transactions:list', filters),
@@ -33,13 +31,19 @@ const api = {
   periods: {
     list: () => ipcRenderer.invoke('periods:list'),
     create: (data: any) => ipcRenderer.invoke('periods:create', data),
+    preview: (id: number) => ipcRenderer.invoke('periods:preview', id),
     close: (id: number) => ipcRenderer.invoke('periods:close', id),
+    snapshots: (id: number) => ipcRenderer.invoke('periods:snapshots', id),
     current: () => ipcRenderer.invoke('periods:current')
   },
   valuations: {
     create: (data: any) => ipcRenderer.invoke('valuations:create', data),
-    latest: (accountId?: number | null) => ipcRenderer.invoke('valuations:latest', accountId),
-    list: (accountId?: number | null) => ipcRenderer.invoke('valuations:list', accountId)
+    latest: (accountId: number) => ipcRenderer.invoke('valuations:latest', accountId),
+    list: (accountId: number) => ipcRenderer.invoke('valuations:list', accountId)
+  },
+  data: {
+    backupNow: () => ipcRenderer.invoke('data:backupNow'),
+    exportAll: () => ipcRenderer.invoke('data:exportAll')
   }
 }
 

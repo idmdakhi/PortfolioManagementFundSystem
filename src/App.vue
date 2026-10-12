@@ -6,6 +6,7 @@
         <router-link to="/">داشبورد</router-link>
         <router-link to="/investors">سرمایه‌گذاران</router-link>
         <router-link to="/transactions">تراکنش‌ها</router-link>
+        <router-link to="/periods">دوره‌ها</router-link>
         <router-link to="/reports">گزارش‌ها</router-link>
         <router-link to="/settings">تنظیمات</router-link>
       </nav>

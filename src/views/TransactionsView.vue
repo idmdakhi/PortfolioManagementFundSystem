@@ -22,7 +22,7 @@
             <td>{{ formatDate(tx.date) }}</td>
             <td><span :class="['type-tag', tx.type]">{{ typeLabel(tx.type) }}</span></td>
             <td class="number">{{ formatRial(tx.amount) }}</td>
-            <td>{{ tx.units != null ? formatRial(tx.units) : '—' }}</td>
+            <td>{{ tx.units != null ? formatUnits(tx.units) : '—' }}</td>
             <td>{{ tx.description || '—' }}</td>
             <td><button class="btn btn-danger btn-sm" :disabled="tx.amount < 0 || tx.relatedTransactionId != null" @click="handleReverse(tx.id)">برگشت</button></td>
           </tr>
@@ -35,7 +35,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useTransactionsStore } from '../stores/transactions'
-import { formatRial, formatDate } from '../services/api'
+import { formatRial, formatDate, formatUnits } from '../services/api'
 const store = useTransactionsStore()
 const filterType = ref('')
 function typeLabel(type: string) {

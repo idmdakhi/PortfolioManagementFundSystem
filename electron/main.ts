@@ -1,7 +1,8 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { join } from 'path'
 import { existsSync, mkdirSync } from 'fs'
-import { getStorageDir, initDatabase } from '../database/index'
+import { closeDatabase, getBackupsDir, getSqlite, getStorageDir, initDatabase } from '../data/index'
+import { backupDatabase } from '../data/backup'
 import { registerAllIpcHandlers } from './ipc/index'
 
 const gotTheLock = app.requestSingleInstanceLock()
@@ -11,6 +12,10 @@ let mainWindow: BrowserWindow | null = null
 
 // Only these Electron paths may be queried from the renderer.
 const ALLOWED_PATHS = new Set(['userData', 'documents', 'downloads', 'desktop'])
+
+function dailyBackup() {
+  try { backupDatabase(getSqlite(), getBackupsDir()) } catch (err) { console.error('Backup failed:', err) }
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -46,6 +51,7 @@ app.whenReady().then(() => {
   try {
     initDatabase()
     console.log('Database initialized')
+    dailyBackup()
   } catch (err) {
     console.error(err)
     dialog.showErrorBox('خطای پایگاه داده', `راه‌اندازی دیتابیس ناموفق بود:\n${(err as Error).message}`)
@@ -61,6 +67,14 @@ app.whenReady().then(() => {
   })
   createWindow()
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow() })
+})
+
+let quitting = false
+app.on('before-quit', () => {
+  if (quitting) return
+  quitting = true
+  dailyBackup()
+  try { closeDatabase() } catch { /* already closed */ }
 })
 
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit() })

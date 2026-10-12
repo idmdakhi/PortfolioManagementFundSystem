@@ -14,12 +14,15 @@
       <div class="card" style="margin-bottom: 1.25rem">
         <h3>حساب‌ها</h3>
         <table class="table" v-if="store.currentAccounts.length" style="margin-top: 0.75rem">
-          <thead><tr><th>نام حساب</th><th>نوع</th><th>وضعیت</th></tr></thead>
+          <thead><tr><th>نام حساب</th><th>نوع</th><th>وضعیت</th><th>واحد</th><th>سرمایه (ریال)</th><th>آخرین ارزش (ریال)</th></tr></thead>
           <tbody>
             <tr v-for="acc in store.currentAccounts" :key="acc.id">
               <td>{{ acc.name }}</td>
               <td><span class="type-badge">{{ accountTypeLabel(acc.type) }}</span></td>
               <td>{{ acc.isActive ? 'فعال' : 'غیرفعال' }}</td>
+              <td>{{ acc.type === 'fund_share' ? formatUnits(acc.units) : '—' }}</td>
+              <td class="number">{{ formatRial(acc.costBasis) }}</td>
+              <td class="number">{{ acc.marketValue != null ? formatRial(acc.marketValue) : '—' }}</td>
             </tr>
           </tbody>
         </table>
@@ -61,6 +64,30 @@
           <button type="submit" class="btn btn-primary" :disabled="txSaving">{{ txSaving ? '...' : 'ثبت تراکنش' }}</button>
         </form>
       </div>
+      <div class="card" style="margin-top: 1.25rem">
+        <h3>ثبت ارزش‌گذاری حساب</h3>
+        <p class="hint">ارزش بازار روز حساب را ثبت کنید؛ هنگام بستن دوره برای محاسبه سود و کارمزد استفاده می‌شود.</p>
+        <form class="tx-form" @submit.prevent="handleCreateVal">
+          <div class="form-row">
+            <div class="form-group">
+              <label>حساب *</label>
+              <select v-model="valForm.accountId" required>
+                <option value="" disabled>انتخاب حساب</option>
+                <option v-for="acc in store.currentAccounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>ارزش بازار (ریال) *</label>
+              <input v-model.number="valForm.marketValue" type="number" min="0" step="1" required />
+            </div>
+            <div class="form-group">
+              <label>تاریخ *</label>
+              <input v-model="valForm.date" type="date" required />
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" :disabled="valSaving">{{ valSaving ? '...' : 'ثبت ارزش‌گذاری' }}</button>
+        </form>
+      </div>
     </template>
     <div v-if="showAccountModal" class="modal-overlay" @click.self="showAccountModal = false">
       <div class="modal">
@@ -90,6 +117,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useInvestorsStore } from '../stores/investors'
 import { useTransactionsStore } from '../stores/transactions'
+import { api, formatRial, formatUnits } from '../services/api'
 import type { AccountType } from '../types'
 const route = useRoute()
 const store = useInvestorsStore()
@@ -97,6 +125,8 @@ const txStore = useTransactionsStore()
 const showAccountModal = ref(false)
 const accSaving = ref(false)
 const txSaving = ref(false)
+const valSaving = ref(false)
+const valForm = reactive({ accountId: '' as number | '', marketValue: 0, date: new Date().toISOString().slice(0,10) })
 const accForm = reactive({ name: '', type: 'personal' as AccountType, notes: '' })
 const txForm = reactive({ accountId: '' as number | '', type: 'deposit' as 'deposit'|'withdraw'|'dividend', amount: 0, units: 0, date: new Date().toISOString().slice(0,10), description: '' })
 // Fund-share accounts must record units on deposit/withdraw (the ledger enforces this too).
@@ -118,6 +148,16 @@ async function handleCreateAccount() {
     showAccountModal.value = false; accForm.name = ''; accForm.type = 'personal'; accForm.notes = ''
   } catch (e: any) { alert(e.message || 'خطا') }
   finally { accSaving.value = false }
+}
+async function handleCreateVal() {
+  if (!valForm.accountId) return
+  valSaving.value = true
+  try {
+    await api.valuations.create({ accountId: Number(valForm.accountId), marketValue: valForm.marketValue, date: valForm.date })
+    await load()
+    alert('ارزش‌گذاری ثبت شد')
+  } catch (e: any) { alert(e.message || 'خطا') }
+  finally { valSaving.value = false }
 }
 async function handleCreateTx() {
   if (!txForm.accountId || !txForm.amount) return

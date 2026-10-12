@@ -19,13 +19,36 @@
         </div>
       </div>
     </div>
+    <div class="card" style="margin-top: 1.25rem">
+      <h3>پشتیبان‌گیری و خروجی</h3>
+      <p class="hint">پشتیبان خودکار هنگام اجرا و هنگام بستن برنامه گرفته می‌شود (۳۰ نسخه‌ی آخر). برای اطمینان بیشتر، پوشه‌ی پشتیبان را روی دیسک یا فضای ابری دیگری هم کپی کنید.</p>
+      <div style="display:flex; gap:0.6rem; flex-wrap:wrap">
+        <button class="btn btn-primary" :disabled="busy" @click="backupNow">پشتیبان‌گیری اکنون</button>
+        <button class="btn btn-secondary" :disabled="busy" @click="exportAll">خروجی کامل (CSV + JSON)</button>
+      </div>
+      <p v-if="dataMsg" class="hint" style="margin-top:0.75rem; direction:ltr; text-align:left">{{ dataMsg }}</p>
+    </div>
   </div>
 </template>
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useSettingsStore } from '../stores/settings'
+import { api } from '../services/api'
 const store = useSettingsStore()
 const savingKey = ref<string | null>(null)
+const busy = ref(false)
+const dataMsg = ref('')
+async function backupNow() {
+  busy.value = true
+  try { dataMsg.value = await api.data.backupNow() } catch (e: any) { dataMsg.value = e.message || 'خطا' } finally { busy.value = false }
+}
+async function exportAll() {
+  busy.value = true
+  try {
+    const r = await api.data.exportAll()
+    dataMsg.value = r ? r.files.join('\n') : ''
+  } catch (e: any) { dataMsg.value = e.message || 'خطا' } finally { busy.value = false }
+}
 const localValues = reactive<Record<string, number>>({})
 const settingItems = [
   { key: 'guaranteed_return_rate', label: 'نرخ سود تضمینی', unit: '٪ سالانه', step: 0.1, description: 'سود تضمینی متعلق به مشتری' },

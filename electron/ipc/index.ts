@@ -4,6 +4,7 @@ import { registerTransactionHandlers } from './transactions'
 import { registerSettingsHandlers } from './settings'
 import { registerPeriodHandlers } from './periods'
 import { registerValuationHandlers } from './valuations'
+import { registerDataHandlers } from './data'
 
 export function registerAllIpcHandlers() {
   registerInvestorHandlers()
@@ -12,5 +13,6 @@ export function registerAllIpcHandlers() {
   registerSettingsHandlers()
   registerPeriodHandlers()
   registerValuationHandlers()
+  registerDataHandlers()
   console.log('All IPC handlers registered')
 }

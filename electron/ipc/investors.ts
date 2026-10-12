@@ -1,7 +1,8 @@
 import { ipcMain } from 'electron'
 import { eq } from 'drizzle-orm'
-import { getDb, schema } from '../../database/index'
-import { ValidationError, optString, pickAllowed, reqBool, reqInt, reqString, requireObject } from '../services/validation'
+import { getDb, schema } from '../../data/index'
+import { listAccountsWithBalances } from '../../data/accountRepo'
+import { ValidationError, optString, pickAllowed, reqBool, reqInt, reqString, requireObject } from '../../core/validation'
 
 export function registerInvestorHandlers() {
   ipcMain.handle('investors:list', async () =>
@@ -36,6 +37,7 @@ export function registerInvestorHandlers() {
     getDb().update(schema.investors).set({ isActive: false, updatedAt: new Date().toISOString() })
       .where(eq(schema.investors.id, reqInt(id, 'سرمایه‌گذار'))).returning().get())
 
+  // Accounts come with derived figures: unit balance, cost basis and latest valuation.
   ipcMain.handle('investors:accounts', async (_e, investorId: unknown) =>
-    getDb().select().from(schema.accounts).where(eq(schema.accounts.investorId, reqInt(investorId, 'سرمایه‌گذار'))).all())
+    listAccountsWithBalances(getDb(), reqInt(investorId, 'سرمایه‌گذار')))
 }
