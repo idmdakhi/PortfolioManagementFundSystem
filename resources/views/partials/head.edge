@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="/app.css"><script src="/app.js" defer></script></head><body><div class="w">
 @if(auth.user)
 <div class="top noprint"><div><h1>صندوق سبدگردانی خانوادگی</h1><div class="sub">{{ auth.user.fullName || auth.user.email }} ({{ auth.user.role == 'admin' ? 'مدیر' : 'فقط مشاهده' }})</div></div>
-<form method="POST" action="/logout">{{ csrfField() }}<button class="o">خروج</button></form></div>
+<div class="acts"><button type="button" id="fs" class="o sm" hidden>تمام‌صفحه</button><form method="POST" action="/logout">{{ csrfField() }}<button class="o sm">خروج</button></form></div></div>
 <nav class="noprint">
 <a href="/" class="{{ nav == 'dash' ? 'on' : '' }}">صندوق</a>
 <a href="/periods" class="{{ nav == 'pl' ? 'on' : '' }}">سود و زیان صندوق</a>

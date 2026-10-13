@@ -36,7 +36,7 @@ const dbConfig = defineConfig({
          * Path to the SQLite database file.
          * Stored in the tmp directory by default.
          */
-        filename: app.tmpPath('db.sqlite3'),
+        filename: app.seedersPath('db.sqlite3'),
       },
 
       /**
