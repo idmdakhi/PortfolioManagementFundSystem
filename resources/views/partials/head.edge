@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title ?? 'صندوق سبدگردانی' }}</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="/app.css"></head><body><div class="w">
+@if(auth.user)
+<div class="top"><div><h1>صندوق سبدگردانی خانوادگی</h1><div class="sub">{{ auth.user.fullName || auth.user.email }} ({{ auth.user.role == 'admin' ? 'مدیر' : 'فقط مشاهده' }})</div></div>
+<form method="POST" action="/logout">{{ csrfField() }}<button class="o">خروج</button></form></div>
+<nav><a href="/" class="{{ nav == 'dash' ? 'on' : '' }}">خلاصه</a><a href="/investors" class="{{ nav == 'inv' ? 'on' : '' }}">سرمایه‌گذاران</a><a href="/transactions" class="{{ nav == 'tx' ? 'on' : '' }}">تراکنش‌ها</a>
+@if(auth.user.role == 'admin')
+<a href="/settings" class="{{ nav == 'set' ? 'on' : '' }}">تنظیمات</a>
+@end
+</nav>
+@end
+@if(flashMessages.has('ok'))
+<div class="flash">{{ flashMessages.get('ok') }}</div>
+@end
+@if(flashMessages.has('error'))
+<div class="flash err">{{ flashMessages.get('error') }}</div>
+@end
+@if(flashMessages.has('errors.email') || flashMessages.has('E_VALIDATION_ERROR'))
+<div class="flash err">ورودی‌ها را بررسی کنید.</div>
+@end

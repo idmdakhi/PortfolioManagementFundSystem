@@ -1,0 +1,22 @@
+@include('partials/head')
+@if(auth.user.role == 'admin')
+<div class="card"><h2>صدور یا ابطال با NAV فعلی ({{ fa2(st.summary.nav) }})</h2><form method="POST" action="/transactions">{{ csrfField() }}<div class="g">
+<div><label>سرمایه‌گذار</label><select name="investorId">
+@each(r in st.rows)
+<option value="{{ r.id }}">{{ r.name }}</option>
+@end
+</select></div>
+<div><label>نوع</label><select name="type"><option value="issue">صدور (واریز)</option><option value="redeem">ابطال (برداشت)</option></select></div>
+<div><label>مبلغ (ریال)</label><input name="amount" type="number" step="any" required></div>
+<div><label>تاریخ</label><input name="occurredOn" type="date"></div>
+<div><label>یادداشت</label><input name="note"></div></div><p><button>ثبت</button></p></form>
+<div class="sub">تراکنش ثبت‌شده قابل ویرایش نیست. برای اصلاح، تراکنش معکوس ثبت کنید.</div></div>
+@end
+<div class="card sc"><table><tr><th>تاریخ</th><th>نام</th><th>نوع</th><th>مبلغ</th><th>NAV</th><th>واحد</th><th>یادداشت</th></tr>
+@each(t in txs)
+<tr><td>{{ jdate(t.occurredOn) }}</td><td>{{ names.get(t.investorId) }}</td><td>{{ t.type == 'issue' ? 'صدور' : 'ابطال' }}</td><td>{{ fa(t.amount) }}</td><td>{{ fa2(t.nav) }}</td><td>{{ fa2(t.units) }}</td><td>{{ t.note || '' }}</td></tr>
+@else
+<tr><td colspan="7" class="sub">هنوز تراکنشی ثبت نشده.</td></tr>
+@end
+</table></div>
+@include('partials/foot')

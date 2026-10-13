@@ -1,0 +1,20 @@
+@include('partials/head')
+<div class="card"><h2>به‌روزرسانی ارزش روز سبد</h2><form method="POST" action="/settings/valuation">{{ csrfField() }}<div class="g">
+<div><label>ارزش روز کل سبد (ریال)، با احتساب تراکنش‌های ثبت‌شده تا الان</label><input name="marketValue" type="number" step="any" value="{{ Math.round(st.params.marketValue) }}" required></div></div><p><button>ثبت ارزش</button></p></form></div>
+<div class="card"><h2>پارامترهای دوره</h2><form method="POST" action="/settings">{{ csrfField() }}<div class="g">
+<div><label>برچسب دوره</label><input name="label" type="text" step="any" value="{{ st.period.label }}" required></div>
+<div><label>پایان سال مالی</label><input name="endJalali" type="text" step="any" value="{{ st.period.endJalali }}" required></div>
+<div><label>تعداد ماه</label><input name="months" type="number" step="any" value="{{ st.period.months }}" required></div>
+<div><label>بهای تمام‌شده ابتدای دوره</label><input name="beginCost" type="number" step="any" value="{{ st.period.beginCost }}" required></div>
+<div><label>واریز ثبت‌شده پیش از سیستم</label><input name="openingDeposits" type="number" step="any" value="{{ st.period.openingDeposits }}" required></div>
+<div><label>برداشت ثبت‌شده پیش از سیستم</label><input name="openingWithdrawals" type="number" step="any" value="{{ st.period.openingWithdrawals }}" required></div>
+<div><label>سود نقدی سهام</label><input name="dividends" type="number" step="any" value="{{ st.period.dividends }}" required></div>
+<div><label>سود ثابت مشتری (٪ سالانه)</label><input name="fixedRate" type="number" step="any" value="{{ st.period.fixedRate }}" required></div>
+<div><label>کارمزد ثابت صندوق (٪ سالانه)</label><input name="mgmtRate" type="number" step="any" value="{{ st.period.mgmtRate }}" required></div>
+<div><label>سهم از مازاد صندوق (٪)</label><input name="excessRate" type="number" step="any" value="{{ st.period.excessRate }}" required></div>
+<div><label>سقف کارمزد (ده میلیون ریال)</label><input name="feeCap" type="number" step="any" value="{{ st.period.feeCap }}" required></div>
+<div><label>تخفیف و اصلاحات</label><input name="discount" type="number" step="any" value="{{ st.period.discount }}" required></div>
+<div><label>کارمزد ثابت شخصی (٪ بهای تمام‌شده)</label><input name="mgmtRate2" type="number" step="any" value="{{ st.period.mgmtRate2 }}" required></div>
+<div><label>سهم از مازاد شخصی (٪)</label><input name="excessRate2" type="number" step="any" value="{{ st.period.excessRate2 }}" required></div>
+</div><p><button>ذخیره</button></p></form></div>
+@include('partials/foot')

@@ -1,0 +1,7 @@
+@include('partials/head')
+<div class="login card"><h1>ورود</h1><br>
+<form method="POST" action="/login">{{ csrfField() }}
+<label>ایمیل</label><input name="email" type="email" required autofocus style="direction:ltr;text-align:right">
+<br><br><label>گذرواژه</label><input name="password" type="password" required style="direction:ltr;text-align:right">
+<br><br><button style="width:100%">ورود</button></form></div>
+@include('partials/foot')

@@ -1,23 +1,8 @@
 # Dependencies and AdonisJS build
 node_modules
 build
-build-electron
-build-renderer
-dist
-tmp/*
-!tmp/.gitkeep
-# db-template.sqlite3 یک آرتیفکت ساخته‌شده است (با migration:run بازتولید می‌شود)، نه چیزی برای commit
-
-# این پوشه‌ها فقط سورس TS دارند؛ هر .js این‌جا باقیماندهٔ یک build نادرست/جاافتاده است
-# (یک بار واقعاً همین اتفاق افتاد: یک tsc نیمه‌کاره stub خالی روی person.ts نوشت و
-#  چون import نسبی './person.js' آن را زودتر از سورس واقعی پیدا کرد، فرمان seed/hook
-#  چند دقیقه روی مدل خالی اجرا می‌شد بدون هیچ خطای واضحی)
-app/**/*.js
-config/**/*.js
-start/**/*.js
-database/**/*.js
-electron/**/*.js
-
+tmp
+!tmp/db.sqlite3
 # Secrets
 .env
 .env.local
@@ -38,8 +23,3 @@ yarn-error.log
 
 # Platform specific
 .DS_Store
-*.patch
-
-# Local data (database, backups, reports) — never commit
-storage/
-out/

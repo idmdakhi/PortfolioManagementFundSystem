@@ -1,34 +1,45 @@
-# مدیریت صندوق سبدگردانی
+# صندوق سبدگردانی خانوادگی (AdonisJS 7 + SQLite)
 
-برنامه دسکتاپ (تک‌کاربره) برای مدیریت صندوق سبدگردانی.
+قدم اول: ورود با نقش (مدیر / فقط‌مشاهده)، دیتابیس، دادهٔ اولیه از اکسل، ماژول محاسبات تست‌شده، و صفحه‌های خلاصه، سرمایه‌گذاران، تراکنش‌ها و تنظیمات.
 
-## تکنولوژی‌ها
-Electron + Vue 3 + TypeScript · Pinia · SQLite (better-sqlite3 ≥ 12) + Drizzle ORM · Decimal.js · Vitest
+## اجرا روی ویندوز
 
-## راه‌اندازی
-```bash
+۱. **Node.js 24 (LTS)** را از nodejs.org نصب کنید. (AdonisJS 7 به Node 24 یا بالاتر نیاز دارد.)
+۲. پوشه را از حالت zip درآورید و در PowerShell داخلش بروید:
+
+```powershell
 npm install
-npm run dev          # دیتابیس هنگام اجرا خودکار ساخته/مهاجرت می‌شود
-npm test             # تست هسته (core) + تست دیتابیس (data)
+copy .env.example .env
+node ace generate:key
+node ace codegen
+node ace migration:run
+node ace db:seed
+npm run dev
 ```
-> `npm run test:db` ابتدا `better-sqlite3` را برای Node معمولی rebuild می‌کند. بعد از آن برای اجرای برنامه یک‌بار `npm run postinstall` بزنید.
-> Node 20، 22 و 24 پشتیبانی می‌شوند.
 
-## معماری
-```
-core/       منطق خالص (بدون Electron و دیتابیس): قواعد دفتر کل، کارمزد، snapshot، اعتبارسنجی
-data/       SQLite: مهاجرت‌ها (منبع اصلی اسکیما)، Repositoryها، پشتیبان، خروجی
-electron/   Main + Preload + IPC نازک (اعتبارسنجی → فراخوانی data/core)
-src/        رابط Vue
-tests/      core/ (سریع، بدون دیتابیس) و data/ (روی SQLite درون‌حافظه‌ای)
-storage/    portfolio.sqlite · backups/ · reports/   (در git نیست)
-```
-جزئیات: `docs/Architecture.md`
+۳. مرورگر: http://localhost:3333
+   ورود اولیه: `admin@example.com` / `ChangeMe-123`
+   (پیش از `db:seed` می‌توانید `ADMIN_EMAIL` و `ADMIN_PASSWORD` را در `.env` عوض کنید.)
 
-## وضعیت
-- [x] دفتر کل اضافه‌شونده، تراکنش اتمی، برگشت به‌جای حذف
-- [x] مبالغ عدد صحیح (ریال)، واحدها عدد صحیح (میکرو‌واحد)، موجودی واحد مشتق از دفتر کل
-- [x] کارمزد با سرمایه‌ی میانگین وزنی-زمانی، snapshot و ثبت خودکار کارمزد هنگام بستن دوره
-- [x] پشتیبان خودکار (اجرا/خروج/قبل از مهاجرت) + خروجی CSV/JSON
-- [ ] گزارش PDF
-- [ ] تاریخ شمسی
+## تست
+
+```powershell
+node ace test unit
+```
+
+تست‌ها با اعداد خود اکسل نوشته شده‌اند (NAV برابر ۲۲٬۲۹۲٫۱۸۸۷ و کارمزد ۲۰۱٬۷۰۰٬۰۰۰ ریال).
+
+## ساختار
+
+- `app/services/fund_calculator.ts`: محاسبات خالص (بدون دیتابیس)، عیناً از اکسل
+- `app/services/fund_state.ts`: ساخت وضعیت دوره از روی دیتابیس و تراکنش‌ها
+- `database/migrations`: جدول‌ها (`users` با `role`, `periods`, `investors`, `transactions`, `personal_accounts`)
+- `database/schema.ts`: کلاس‌های مدل که Lucid از روی migrationها می‌سازد (دستی ویرایش نکنید)
+- `database/seeders/main_seeder.ts`: دادهٔ اولیه از اکسل
+- دیتابیس: فایل `tmp/db.sqlite3` (برای پشتیبان‌گیری همین فایل را کپی کنید)
+
+## نکته‌های طراحی
+
+- واریز، برداشت و ارزش روز از روی تراکنش‌ها ساخته می‌شوند. تراکنش ثبت‌شده ویرایش‌پذیر نیست؛ اصلاح با تراکنش معکوس.
+- واحدها `double` هستند (مثل اکسل). مبلغ‌ها ریال صحیح‌اند.
+- رفتارهای خود اکسل عمداً حفظ شده: سود نقدی دوبار در سود ناخالص، و تفاوت نرخ‌های صندوق و حساب شخصی.

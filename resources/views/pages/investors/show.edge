@@ -1,0 +1,41 @@
+@include('partials/head')
+<h2>{{ row.name }}</h2>
+<div class="g">
+<div class="card"><h2>سهم در صندوق</h2>
+<div class="r"><span>تعداد واحد</span><b>{{ fa2(row.units) }}</b></div>
+<div class="r"><span>بهای تمام‌شده</span><b>{{ fa(row.cost) }}</b></div>
+<div class="r"><span>ارزش روز</span><b>{{ fa(row.fund.value) }}</b></div>
+<div class="r"><span>سود ناخالص</span><b>{{ fa(row.fund.gross) }}</b></div>
+<div class="r"><span>سود ثابت مشتری</span><b>{{ fa(row.fund.fixed) }}</b></div>
+<div class="r"><span>مازاد</span><b>{{ fa(row.fund.excess) }}</b></div>
+<div class="r"><span>کارمزد تخصیصی</span><b>{{ fa(row.fund.fee) }}</b></div>
+<div class="r t"><span>خالص پس از کارمزد</span><b>{{ fa(row.fund.net) }}</b></div></div>
+<div class="card"><h2>حساب شخصی (طبق شیت اکسل)</h2>
+@if(row.personal)
+<div class="r"><span>سود ناخالص</span><b>{{ fa(row.personal.gross) }}</b></div>
+<div class="r"><span>سود ثابت مشتری</span><b>{{ fa(row.personal.fixed) }}</b></div>
+<div class="r"><span>مازاد</span><b>{{ fa(row.personal.excess) }}</b></div>
+<div class="r"><span>کارمزد ثابت</span><b>{{ fa(row.personal.mgmtFee) }}</b></div>
+<div class="r"><span>سهم از مازاد</span><b>{{ fa(row.personal.excessFee) }}</b></div>
+<div class="r t"><span>خالص پس از کارمزد (با سقف)</span><b>{{ fa(row.personal.net) }}</b></div>
+@else
+<div class="sub">حساب شخصی ثبت نشده.</div>
+@end
+@if(auth.user.role == 'admin')
+<form method="POST" action="/investors/{{ row.id }}/personal">{{ csrfField() }}<br><div class="g">
+<div><label>بهای تمام‌شده ابتدای دوره</label><input type="number" step="any" name="beginCost" value="{{ row.personalRaw ? row.personalRaw.beginCost : 0 }}"></div>
+<div><label>جمع واریز</label><input type="number" step="any" name="deposits" value="{{ row.personalRaw ? row.personalRaw.deposits : 0 }}"></div>
+<div><label>جمع برداشت</label><input type="number" step="any" name="withdrawals" value="{{ row.personalRaw ? row.personalRaw.withdrawals : 0 }}"></div>
+<div><label>بهای تمام‌شده پایان دوره</label><input type="number" step="any" name="endCost" value="{{ row.personalRaw ? row.personalRaw.endCost : 0 }}"></div>
+<div><label>ارزش روز پایانی</label><input type="number" step="any" name="marketValue" value="{{ row.personalRaw ? row.personalRaw.marketValue : 0 }}"></div></div>
+<p><button>ذخیره</button></p></form>
+@end
+</div></div>
+<div class="card sc"><h2>تراکنش‌ها</h2><table><tr><th>تاریخ</th><th>نوع</th><th>مبلغ</th><th>NAV</th><th>واحد</th></tr>
+@each(t in txs)
+<tr><td>{{ jdate(t.occurredOn) }}</td><td>{{ t.type == 'issue' ? 'صدور' : 'ابطال' }}</td><td>{{ fa(t.amount) }}</td><td>{{ fa2(t.nav) }}</td><td>{{ fa2(t.units) }}</td></tr>
+@else
+<tr><td colspan="5" class="sub">تراکنشی ثبت نشده.</td></tr>
+@end
+</table></div>
+@include('partials/foot')

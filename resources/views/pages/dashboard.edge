@@ -1,0 +1,17 @@
+@include('partials/head')
+<div class="card"><div class="sub">ارزش هر واحد (NAV) — سال مالی منتهی به {{ st.period.endJalali }}</div>
+<div class="big">{{ fa2(st.summary.nav) }} ریال</div><div class="sub">مجموع {{ fa2(st.totalUnits) }} واحد</div></div>
+<div class="g">
+<div class="card"><h2>سود دوره</h2>
+<div class="r"><span>بهای تمام‌شده پایان دوره</span><b>{{ fa(st.summary.endCost) }}</b></div>
+<div class="r"><span>ارزش روز سبد</span><b>{{ fa(st.params.marketValue) }}</b></div>
+<div class="r"><span>سود ناخالص</span><b>{{ fa(st.summary.gross) }}</b></div>
+<div class="r"><span>سود ثابت مشتری</span><b>{{ fa(st.summary.fixed) }}</b></div>
+<div class="r"><span>سود مازاد</span><b>{{ fa(st.summary.excessBase) }}</b></div>
+<div class="r t"><span>سود کل صندوق</span><b>{{ fa(st.summary.fundProfit) }}</b></div></div>
+<div class="card"><h2>کارمزد سبدگردان</h2>
+<div class="r"><span>کارمزد ثابت دوره</span><b>{{ fa(st.summary.mgmtFee) }}</b></div>
+<div class="r"><span>سهم از مازاد</span><b>{{ fa(st.summary.excessFee) }}</b></div>
+<div class="r"><span>تخفیف</span><b>{{ fa(st.params.discount) }}</b></div>
+<div class="r t"><span>کارمزد نهایی (با سقف)</span><b>{{ fa(st.summary.fee) }}</b></div></div></div>
+@include('partials/foot')
