@@ -1,0 +1,54 @@
+@include('partials/head')
+<div class="chips noprint">
+@each(r in st.reports)
+<a href="/investors/{{ id }}/report?p={{ r.period.id }}" class="{{ r.period.id == rep.period.id ? 'on' : '' }}">{{ r.period.label }}</a>
+@end
+<button type="button" onclick="window.print()">چاپ / ذخیره PDF</button>
+<a href="/investors/{{ id }}">بازگشت</a>
+</div>
+<div class="rep">
+<h1>گزارش سرمایه‌گذاری — {{ name }}</h1>
+<div class="meta"><span>دورهٔ مالی {{ rep.period.label }}: {{ jd(rep.period.startOn) }} تا {{ jd(rep.period.endOn) }}</span><span>تاریخ تهیهٔ گزارش: {{ todayFa }}</span></div>
+<div class="card"><div class="tot">
+<div><span class="sub">جمع ارزش دارایی‌ها</span><b>{{ fa(totalValue) }} ریال</b></div>
+<div><span class="sub">جمع سود خالص دوره (صندوق + شخصی + حوزه‌ها)</span><b class="{{ cls(totalNet) }}">{{ fa(totalNet) }} ریال</b></div>
+<div><span class="sub">NAV پایان دوره</span><b>{{ fa2(rep.summary.nav) }}</b></div></div></div>
+<div class="card"><h2>۱. حساب صندوق</h2>
+<div class="r "><span>تعداد واحد</span><b>{{ fa2(row.unitsEnd) }}</b></div><div class="r "><span>سهم از صندوق</span><b>{{ pct(row.share) }}</b></div><div class="r "><span>سرمایه (ابتدای دوره + واریز − برداشت)</span><b>{{ fa(row.fund.capital) }}</b></div><div class="r "><span>ارزش پایان دوره (پس از کارمزد)</span><b>{{ fa(row.fund.value) }}</b></div><div class="r "><span>سهم از سود تقسیمی</span><b>{{ fa(row.fundDividends) }}</b></div><div class="r "><span>سود ناخالص</span><b>{{ fa(row.fund.gross) }}</b></div><div class="r "><span>سود ثابت</span><b>{{ fa(row.fund.fixed) }}</b></div><div class="r "><span>سهم کارمزد</span><b>{{ fa(row.fund.feeShare) }}</b></div><div class="r t"><span>سود خالص</span><b>{{ fa(row.fund.net) }}</b></div><div class="r "><span>بازده دوره</span><b>{{ pct(row.fund.returnPct) }}</b></div>
+</div>
+<div class="card"><h2>۲. حساب شخصی</h2>
+@if(row.personal)
+<div class="r "><span>سرمایه</span><b>{{ fa(row.personal.capital) }}</b></div><div class="r "><span>ارزش روز پایانی</span><b>{{ fa(row.personalRaw.marketValue) }}</b></div><div class="r "><span>سود تقسیمی</span><b>{{ fa(row.personalDividends) }}</b></div><div class="r "><span>سود ناخالص</span><b>{{ fa(row.personal.gross) }}</b></div><div class="r "><span>سود ثابت</span><b>{{ fa(row.personal.fixed) }}</b></div><div class="r "><span>کارمزد (ثابت + مازاد)</span><b>{{ fa(row.personal.fee) }}</b></div><div class="r t"><span>سود خالص</span><b>{{ fa(row.personal.net) }}</b></div><div class="r "><span>بازده دوره</span><b>{{ pct(row.personal.returnPct) }}</b></div>
+@else
+<div class="sub">حساب شخصی برای این دوره ثبت نشده است.</div>
+@end
+</div>
+@if(areaRows.length)
+<div class="card sc"><h2>۳. حوزه‌های سرمایه‌گذاری</h2><table><tr><th>حوزه</th><th class="num">واریز</th><th class="num">برداشت</th><th class="num">مانده</th><th class="num">ارزش</th><th class="num">سود</th></tr>
+@each(x in areaRows)
+<tr><td>{{ x.area.name }}</td><td class="num">{{ fa(x.row.deposits) }}</td><td class="num">{{ fa(x.row.withdrawals) }}</td><td class="num">{{ fa(x.row.balance) }}</td><td class="num">{{ fa(x.row.value) }}</td><td class="num {{ cls(x.row.profit) }}">{{ fa(x.row.profit) }}</td></tr>
+@end
+</table></div>
+@end
+<div class="card sc"><h2>سود خالص دوره‌ها</h2><table><tr><th>دوره</th><th class="num">حساب صندوق</th><th class="num">حساب شخصی</th><th class="num">جمع</th></tr>
+@each(h in history)
+<tr><td>{{ h.label }}</td><td class="num">{{ fa(h.fundNet) }}</td><td class="num">{{ fa(h.personalNet) }}</td><td class="num">{{ fa(h.fundNet + h.personalNet) }}</td></tr>
+@end
+</table></div>
+<div class="card sc"><h2>گردش دوره</h2><table><tr><th>تاریخ</th><th>شرح</th><th class="num">مبلغ</th></tr>
+@each(t in txs)
+<tr><td>{{ jd(t.occurredOn) }}</td><td>{{ typeFa(t.type) }} صندوق{{ t.note ? ' — ' + t.note : '' }}</td><td class="num">{{ fa(t.amount) }}</td></tr>
+@end
+@each(d in personalDivs)
+<tr><td>{{ jd(d.occurredOn) }}</td><td>سود تقسیمی حساب شخصی{{ d.note ? ' — ' + d.note : '' }}</td><td class="num">{{ fa(d.amount) }}</td></tr>
+@end
+@each(m in areaMoves)
+<tr><td>{{ jd(m.occurredOn) }}</td><td>{{ m.type == 'deposit' ? 'واریز به' : 'برداشت از' }} {{ areaNames.get(m.areaId) }}{{ m.note ? ' — ' + m.note : '' }}</td><td class="num">{{ fa(m.amount) }}</td></tr>
+@end
+@if(!txs.length && !personalDivs.length && !areaMoves.length)
+<tr><td colspan="3" class="sub">در این دوره گردشی ثبت نشده است.</td></tr>
+@end
+</table></div>
+<div class="sub">این گزارش بر اساس اطلاعات ثبت‌شده در سامانه تهیه شده است. ارزش‌ها و سودها تا زمان ارزش‌گذاری بعدی تغییر می‌کنند.</div>
+</div>
+@include('partials/foot')

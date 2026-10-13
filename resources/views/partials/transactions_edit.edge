@@ -1,0 +1,29 @@
+@include('partials/head')
+<div class="card">
+  <h2>ویرایش تراکنش #{{ tx.id }}</h2>
+  <div class="sub">
+    NAV ثبتشده: {{ fa2(tx.nav) }} — نام سرمایهگذار:
+    {{ st.rows.find(r => r.id === tx.investorId).name }}
+  </div>
+  <br>
+  <form method="POST" action="/transactions/{{ tx.id }}">{{ csrfField() }}
+    <div class="g">
+      <div>
+        <label>مبلغ (ریال)</label>
+        <input name="amount" type="text" inputmode="numeric" data-money
+               value="{{ tx.amount }}" required>
+      </div>
+      <div>
+        <label>تاریخ (شمسی)</label>
+        <input name="occurredOn" type="text" data-jalali value="{{ toJalali(tx.occurredOn) }}">
+      </div>
+      <div><label>یادداشت</label><input name="note" value="{{ tx.note || '' }}"></div>
+      <div><label>علت ویرایش</label><input name="editNote"></div>
+    </div>
+    <p>
+      <button>ذخیره تغییرات</button>
+      <a class="btn o" href="/transactions">انصراف</a>
+    </p>
+  </form>
+</div>
+@include('partials/foot')

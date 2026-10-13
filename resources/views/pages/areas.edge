@@ -1,0 +1,28 @@
+@include('partials/head')
+@if(auth.user.role == 'admin')
+<div class="card"><h2>افزودن حوزهٔ سرمایه‌گذاری</h2><form method="POST" action="/areas">{{ csrfField() }}<div class="g">
+<div><label>نام (مثلاً زمین بلوار)</label><input name="name" required></div>
+<div><label>نوع</label><select name="kind"><option value="cash">نقدی</option><option value="property">ملک</option><option value="other">سایر</option></select></div>
+<div><label>توضیح</label><input name="notes"></div></div><p><button>افزودن</button></p></form>
+<div class="sub">واریز و برداشت این حوزه‌ها از صفحهٔ «حرکت گروهی» انجام می‌شود.</div></div>
+@end
+@each(a in st.areas)
+<div class="card sc"><h2>{{ a.name }} <span class="badge">{{ a.kind == 'cash' ? 'نقدی' : (a.kind == 'property' ? 'ملک' : 'سایر') }}</span></h2>
+<div class="sub">مجموع مانده: {{ fa(a.totalBalance) }} ریال — ارزش روز: {{ a.marketValue ? fa(a.marketValue) + ' ریال (' + jd(a.valuedOn) + ')' : 'ثبت نشده (ارزش = مانده)' }}{{ a.notes ? ' — ' + a.notes : '' }}</div>
+<table><tr><th>سرمایه‌گذار</th><th class="num">واریز</th><th class="num">برداشت</th><th class="num">مانده</th><th class="num">سهم از ارزش</th><th class="num">سود</th></tr>
+@each(r in a.rows)
+<tr><td>{{ r.name }}</td><td class="num">{{ fa(r.deposits) }}</td><td class="num">{{ fa(r.withdrawals) }}</td><td class="num">{{ fa(r.balance) }}</td><td class="num">{{ fa(r.value) }}</td><td class="num {{ cls(r.profit) }}">{{ fa(r.profit) }}</td></tr>
+@else
+<tr><td colspan="6" class="sub">هنوز واریزی ندارد.</td></tr>
+@end
+</table>
+@if(auth.user.role == 'admin')
+<form method="POST" action="/areas/{{ a.id }}/valuation"><br>{{ csrfField() }}<div class="g">
+<div><label>ارزش روز کل حوزه (ریال)</label><input class="money" inputmode="numeric" name="marketValue" value="{{ money(a.marketValue) }}" required></div>
+<div><label>تاریخ ارزش‌گذاری (شمسی)</label><input name="valuedOn" dir="ltr" value="{{ today }}"></div></div><p><button class="sm">ثبت ارزش</button></p></form>
+@end
+</div>
+@else
+<div class="card">هنوز حوزه‌ای تعریف نشده است.</div>
+@end
+@include('partials/foot')

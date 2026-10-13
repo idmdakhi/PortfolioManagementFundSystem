@@ -1,0 +1,31 @@
+@include('partials/head')
+<h2>{{ name }} — حساب شخصی</h2>
+<div class="chips noprint"><a href="/investors/{{ id }}" class="">حساب صندوق</a><a href="/investors/{{ id }}/personal" class="on">حساب شخصی</a><a href="/investors/{{ id }}/report">گزارش چاپی برای مشتری</a></div>
+<div class="card sc"><h2>حساب شخصی — به تفکیک دوره</h2><table><tr><th>دوره</th><th class="num">سرمایه</th><th class="num">ارزش روز</th><th class="num">سود تقسیمی</th><th class="num">سود ناخالص</th><th class="num">سود ثابت</th><th class="num">مازاد</th><th class="num">کارمزد</th><th class="num">سود خالص</th><th class="num">بازده</th></tr>
+@each(l in lines)
+@if(l.row.personal)
+<tr><td>{{ l.period.label }}</td><td class="num">{{ fa(l.row.personal.capital) }}</td><td class="num">{{ fa(l.row.personalRaw.marketValue) }}</td><td class="num">{{ fa(l.row.personalDividends) }}</td><td class="num">{{ fa(l.row.personal.gross) }}</td><td class="num">{{ fa(l.row.personal.fixed) }}</td><td class="num">{{ fa(l.row.personal.excess) }}</td><td class="num">{{ fa(l.row.personal.fee) }}</td><td class="num {{ cls(l.row.personal.net) }}">{{ fa(l.row.personal.net) }}</td><td class="num">{{ pct(l.row.personal.returnPct) }}</td></tr>
+@end
+@end
+</table></div>
+@if(auth.user.role == 'admin')
+<div class="card"><h2>ویرایش حساب شخصی</h2>
+@each(l in lines)
+<details><summary>دورهٔ {{ l.period.label }}</summary>
+<form method="POST" action="/investors/{{ id }}/personal">{{ csrfField() }}<input type="hidden" name="periodId" value="{{ l.period.id }}"><br><div class="g">
+<div><label>ارزش ابتدای دوره</label><input class="money" inputmode="numeric" name="beginValue" value="{{ money(l.row.personalRaw ? l.row.personalRaw.beginValue : 0) }}"></div>
+<div><label>جمع واریز</label><input class="money" inputmode="numeric" name="deposits" value="{{ money(l.row.personalRaw ? l.row.personalRaw.deposits : 0) }}"></div>
+<div><label>جمع برداشت</label><input class="money" inputmode="numeric" name="withdrawals" value="{{ money(l.row.personalRaw ? l.row.personalRaw.withdrawals : 0) }}"></div>
+<div><label>ارزش روز پایانی</label><input class="money" inputmode="numeric" name="marketValue" value="{{ money(l.row.personalRaw ? l.row.personalRaw.marketValue : 0) }}"></div></div>
+<p><button class="sm">ذخیره</button></p></form></details>
+@end
+</div>
+@end
+<div class="card sc"><h2>سود تقسیمی حساب شخصی</h2><table><tr><th>تاریخ</th><th class="num">مبلغ</th><th>یادداشت</th></tr>
+@each(d in divs)
+<tr><td>{{ jd(d.occurredOn) }}</td><td class="num">{{ fa(d.amount) }}</td><td>{{ d.note || '' }}</td></tr>
+@else
+<tr><td colspan="3" class="sub">موردی ثبت نشده.</td></tr>
+@end
+</table><div class="sub">ثبت سود تقسیمی در صفحهٔ «سود تقسیمی» انجام می‌شود.</div></div>
+@include('partials/foot')

@@ -4,9 +4,15 @@
  */
 
 export const controllers = {
+  Areas: () => import('#controllers/areas_controller'),
   Auth: () => import('#controllers/auth_controller'),
   Dashboard: () => import('#controllers/dashboard_controller'),
+  Dividends: () => import('#controllers/dividends_controller'),
+  Formulas: () => import('#controllers/formulas_controller'),
   Investors: () => import('#controllers/investors_controller'),
+  Movements: () => import('#controllers/movements_controller'),
+  Periods: () => import('#controllers/periods_controller'),
+  Personal: () => import('#controllers/personal_controller'),
   Settings: () => import('#controllers/settings_controller'),
   Transactions: () => import('#controllers/transactions_controller'),
 }

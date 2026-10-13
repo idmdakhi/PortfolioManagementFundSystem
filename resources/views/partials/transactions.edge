@@ -1,0 +1,78 @@
+@include('partials/head')
+
+@if(auth.user.role == 'admin')
+<div class="card">
+  <h2>صدور یا ابطال با NAV فعلی ({{ fa2(st.summary.nav) }})</h2>
+  <form method="POST" action="/transactions">{{ csrfField() }}
+    <div class="g">
+      <div>
+        <label>سرمایهگذار</label>
+        <select name="investorId">
+          @each(r in st.rows)
+            <option value="{{ r.id }}">{{ r.name }}</option>
+          @end
+        </select>
+      </div>
+      <div>
+        <label>نوع</label>
+        <select name="type">
+          <option value="issue">صدور (واریز)</option>
+          <option value="redeem">ابطال (برداشت)</option>
+        </select>
+      </div>
+      <div>
+        <label>مبلغ (ریال)</label>
+        {{-- ★ data-money برای کاماگذاری --}}
+        <input name="amount" type="text" inputmode="numeric" data-money required>
+      </div>
+      <div>
+        <label>تاریخ (شمسی)</label>
+        {{-- ★ data-jalali برای فرمت خودکار --}}
+        <input name="occurredOn" type="text" placeholder="1404/01/15" data-jalali>
+      </div>
+      <div><label>یادداشت</label><input name="note"></div>
+    </div>
+    <p><button>ثبت</button></p>
+  </form>
+  <div class="sub">تراکنشهای ثبتشده قابل ویرایش و حذف (با امکان بازیابی) هستند.</div>
+</div>
+@end
+
+<div class="card sc">
+  <table>
+    <tr>
+      <th>تاریخ</th><th>نام</th><th>نوع</th><th>مبلغ</th><th>NAV</th>
+      <th>واحد</th><th>یادداشت</th>
+      @if(auth.user.role == 'admin')<th>عملیات</th>@end
+    </tr>
+    @each(t in txs)
+      <tr class="{{ t.isDeleted ? 'deleted' : '' }}">
+        <td>{{ jdate(t.occurredOn) }}</td>
+        <td>{{ names.get(t.investorId) }}</td>
+        <td>{{ t.type == 'issue' ? 'صدور' : 'ابطال' }}</td>
+        <td>{{ fa(t.amount) }}</td>
+        <td>{{ fa2(t.nav) }}</td>
+        <td>{{ fa2(t.units) }}</td>
+        <td>{{ t.note || '' }}</td>
+        @if(auth.user.role == 'admin')
+          <td>
+            @if(!t.isDeleted)
+              <a class="btn o" href="/transactions/{{ t.id }}/edit">ویرایش</a>
+              <form method="POST" action="/transactions/{{ t.id }}/delete" style="display:inline"
+                    onsubmit="return confirm('این تراکنش حذف شود؟')">
+                {{ csrfField() }}<button class="o">حذف</button>
+              </form>
+            @else
+              <form method="POST" action="/transactions/{{ t.id }}/restore" style="display:inline">
+                {{ csrfField() }}<button class="o">بازیابی</button>
+              </form>
+            @end
+          </td>
+        @end
+      </tr>
+    @else
+      <tr><td colspan="8" class="sub">هنوز تراکنشی ثبت نشده.</td></tr>
+    @end
+  </table>
+</div>
+@include('partials/foot')

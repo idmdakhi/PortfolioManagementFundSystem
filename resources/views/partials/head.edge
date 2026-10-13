@@ -2,11 +2,20 @@
 <html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ title ?? 'صندوق سبدگردانی' }}</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap">
-<link rel="stylesheet" href="/app.css"></head><body><div class="w">
+<link rel="stylesheet" href="/app.css"><script src="/app.js" defer></script></head><body><div class="w">
 @if(auth.user)
-<div class="top"><div><h1>صندوق سبدگردانی خانوادگی</h1><div class="sub">{{ auth.user.fullName || auth.user.email }} ({{ auth.user.role == 'admin' ? 'مدیر' : 'فقط مشاهده' }})</div></div>
+<div class="top noprint"><div><h1>صندوق سبدگردانی خانوادگی</h1><div class="sub">{{ auth.user.fullName || auth.user.email }} ({{ auth.user.role == 'admin' ? 'مدیر' : 'فقط مشاهده' }})</div></div>
 <form method="POST" action="/logout">{{ csrfField() }}<button class="o">خروج</button></form></div>
-<nav><a href="/" class="{{ nav == 'dash' ? 'on' : '' }}">خلاصه</a><a href="/investors" class="{{ nav == 'inv' ? 'on' : '' }}">سرمایه‌گذاران</a><a href="/transactions" class="{{ nav == 'tx' ? 'on' : '' }}">تراکنش‌ها</a>
+<nav class="noprint">
+<a href="/" class="{{ nav == 'dash' ? 'on' : '' }}">صندوق</a>
+<a href="/periods" class="{{ nav == 'pl' ? 'on' : '' }}">سود و زیان صندوق</a>
+<a href="/personal" class="{{ nav == 'ps' ? 'on' : '' }}">حساب‌های شخصی</a>
+<a href="/investors" class="{{ nav == 'inv' ? 'on' : '' }}">سرمایه‌گذاران</a>
+<a href="/transactions" class="{{ nav == 'tx' ? 'on' : '' }}">تراکنش‌ها</a>
+<a href="/movements" class="{{ nav == 'mv' ? 'on' : '' }}">حرکت گروهی</a>
+<a href="/areas" class="{{ nav == 'ar' ? 'on' : '' }}">حوزه‌ها</a>
+<a href="/dividends" class="{{ nav == 'div' ? 'on' : '' }}">سود تقسیمی</a>
+<a href="/formulas" class="{{ nav == 'fm' ? 'on' : '' }}">فرمول‌ها</a>
 @if(auth.user.role == 'admin')
 <a href="/settings" class="{{ nav == 'set' ? 'on' : '' }}">تنظیمات</a>
 @end

@@ -1,62 +1,192 @@
 import Period from '#models/period'
 import Investor from '#models/investor'
 import Transaction from '#models/transaction'
-import { fundSummary, fundAccount, personalAccount, replayPosition, type PeriodParams } from '#services/fund_calculator'
+import Dividend from '#models/dividend'
+import PersonalAccount from '#models/personal_account'
+import HistoryPeriod from '#models/history_period'
+import Area from '#models/area'
+import AreaEntry from '#models/area_entry'
+import {
+  fundSummary, fundAccount, personalAccount, replayPosition, ledgerIsValid,
+  type PeriodParams, type Tx,
+} from '#services/fund_calculator'
 
-/** Builds the full, derived state of the current period from the database. */
+const N = (v: number | bigint) => Number(v)
+const sumBy = <T extends { amount: number }>(l: T[]) => l.reduce((a, t) => a + t.amount, 0)
+
+export interface LedgerTx extends Tx {
+  id: number
+  investorId: number
+  nav: number
+  occurredOn: string
+  note: string | null
+  batchId: string | null
+}
+export interface AreaMove {
+  id: number
+  areaId: number
+  investorId: number
+  type: 'deposit' | 'withdraw'
+  amount: number
+  occurredOn: string
+  note: string | null
+  batchId: string
+}
+export interface Div {
+  id: number
+  scope: 'fund' | 'personal'
+  investorId: number | null
+  amount: number
+  occurredOn: string
+  note: string | null
+}
+
+export const byDate = (a: { occurredOn: string; id: number }, b: { occurredOn: string; id: number }) =>
+  a.occurredOn.localeCompare(b.occurredOn) || a.id - b.id
+
+/** Builds every period's report (fund + each investor) from the database. */
 export async function loadState() {
-  const period = await Period.query().orderBy('id', 'desc').firstOrFail()
-  const investors = await Investor.query().preload('personal').orderBy('id')
-  const N = (v: number | bigint) => Number(v)
-  const txs = (await Transaction.query().orderBy('id')).map((t) => ({
-    id: t.id,
-    investorId: t.investorId,
-    type: t.type as 'issue' | 'redeem',
-    amount: N(t.amount),
-    nav: t.nav,
-    units: t.units,
-    occurredOn: t.occurredOn,
-    note: t.note,
-  }))
+  const periods = await Period.query().orderBy('start_on')
+  const investors = await Investor.query().orderBy('id')
+  const personals = await PersonalAccount.query()
+  const history = await HistoryPeriod.query().orderBy('id')
 
-  const sum = (type: string, from = 0) =>
-    txs.filter((t) => t.type === type && t.id > from).reduce((a, t) => a + t.amount, 0)
+  const txs: LedgerTx[] = (await Transaction.query())
+    .map((t) => ({
+      id: t.id, investorId: t.investorId, type: t.type as 'issue' | 'redeem', amount: N(t.amount),
+      nav: t.nav, units: t.units, occurredOn: t.occurredOn, note: t.note, batchId: t.batchId,
+    }))
+    .sort(byDate)
+  const divs: Div[] = (await Dividend.query())
+    .map((d) => ({
+      id: d.id, scope: d.scope as 'fund' | 'personal', investorId: d.investorId,
+      amount: N(d.amount), occurredOn: d.occurredOn, note: d.note,
+    }))
+    .sort(byDate)
 
-  const params: PeriodParams = {
-    months: period.months,
-    beginCost: N(period.beginCost),
-    deposits: N(period.openingDeposits) + sum('issue'),
-    withdrawals: N(period.openingWithdrawals) + sum('redeem'),
-    dividends: N(period.dividends),
-    marketValue: N(period.marketValueBase) + sum('issue', period.valuationTxId) - sum('redeem', period.valuationTxId),
-    fixedRate: period.fixedRate,
-    mgmtRate: period.mgmtRate,
-    excessRate: period.excessRate,
-    feeCap: period.feeCap,
-    discount: N(period.discount),
-    mgmtRate2: period.mgmtRate2,
-    excessRate2: period.excessRate2,
+  const areaEntries: AreaMove[] = (await AreaEntry.query())
+    .map((e) => ({
+      id: e.id, areaId: e.areaId, investorId: e.investorId, type: e.type as 'deposit' | 'withdraw',
+      amount: N(e.amount), occurredOn: e.occurredOn, note: e.note, batchId: e.batchId,
+    }))
+    .sort(byDate)
+  const areas = (await Area.query().orderBy('id')).map((a) => {
+    const entries = areaEntries.filter((e) => e.areaId === a.id)
+    const rows = investors
+      .map((inv) => {
+        const mine = entries.filter((e) => e.investorId === inv.id)
+        const deposits = sumBy(mine.filter((e) => e.type === 'deposit'))
+        const withdrawals = sumBy(mine.filter((e) => e.type === 'withdraw'))
+        return { investorId: inv.id, name: inv.name, deposits, withdrawals, balance: deposits - withdrawals, value: 0, profit: 0 }
+      })
+      .filter((r) => r.deposits || r.withdrawals)
+    const totalBalance = rows.reduce((x, r) => x + r.balance, 0)
+    const marketValue = N(a.marketValue)
+    // With a valuation, the area's value is shared by balance; without one, value = balance.
+    for (const r of rows) {
+      r.value = marketValue > 0 && totalBalance > 0 ? (r.balance / totalBalance) * marketValue : r.balance
+      r.profit = r.value - r.balance
+    }
+    return { id: a.id, name: a.name, kind: a.kind, notes: a.notes, marketValue, valuedOn: a.valuedOn, rows, totalBalance, entries }
+  })
+
+  const position = (inv: Investor, date: string) =>
+    replayPosition(inv.openingUnits, inv.openingCost, txs.filter((t) => t.investorId === inv.id && t.occurredOn <= date))
+
+  const reports: Report[] = []
+  for (const period of periods) {
+    const inRange = (d: string) => d >= period.startOn && d <= period.endOn
+    const txIn = txs.filter((t) => inRange(t.occurredOn))
+    const of = (l: LedgerTx[], type: string) => sumBy(l.filter((t) => t.type === type))
+    const isOpen = period.status === 'open'
+    const after = isOpen ? txIn.filter((t) => t.occurredOn > period.valuationOn) : []
+    const marketValue = N(period.marketValueBase) + of(after, 'issue') - of(after, 'redeem')
+    const fundDivs = divs.filter((d) => d.scope === 'fund' && inRange(d.occurredOn))
+    const prev = reports[reports.length - 1]
+
+    const pos = new Map(investors.map((i) => [i.id, position(i, period.endOn)]))
+    const totalUnits = [...pos.values()].reduce((a, p) => a + p.units, 0)
+    const params: PeriodParams = {
+      months: period.months,
+      beginMarket: N(period.beginMarket),
+      deposits: N(period.openingDeposits) + of(txIn, 'issue'),
+      withdrawals: N(period.openingWithdrawals) + of(txIn, 'redeem'),
+      dividends: sumBy(fundDivs),
+      marketValue,
+      fixedRate: period.fixedRate, mgmtRate: period.mgmtRate, excessRate: period.excessRate,
+      feeCap: period.feeCap, discount: N(period.discount),
+      mgmtRate2: period.mgmtRate2, excessRate2: period.excessRate2,
+    }
+    const summary = fundSummary(params, totalUnits)
+
+    const rows = investors.map((inv) => {
+      const prevRow = prev?.rows.find((r) => r.id === inv.id)
+      const mine = txIn.filter((t) => t.investorId === inv.id)
+      let div = 0
+      for (const d of fundDivs) {
+        const tot = investors.reduce((a, i) => a + position(i, d.occurredOn).units, 0)
+        if (tot > 0) div += (d.amount * position(inv, d.occurredOn).units) / tot
+      }
+      const p = pos.get(inv.id)!
+      const fund = fundAccount(
+        {
+          unitsEnd: p.units,
+          beginValue: prev && prevRow ? prevRow.unitsEnd * prev.summary.nav : 0,
+          deposits: of(mine, 'issue') + (prev ? 0 : inv.openingCost),
+          withdrawals: of(mine, 'redeem'),
+          dividends: div,
+        },
+        summary, totalUnits, params
+      )
+      const pa = personals.find((x) => x.investorId === inv.id && x.periodId === period.id)
+      const personalDiv = sumBy(divs.filter((d) => d.scope === 'personal' && d.investorId === inv.id && inRange(d.occurredOn)))
+      const personalRaw = pa
+        ? { beginValue: N(pa.beginValue), deposits: N(pa.deposits), withdrawals: N(pa.withdrawals), marketValue: N(pa.marketValue) }
+        : null
+      return {
+        id: inv.id, name: inv.name, notes: inv.notes,
+        unitsEnd: p.units, cost: p.cost,
+        share: totalUnits > 0 ? (p.units / totalUnits) * 100 : 0,
+        fund, fundDividends: div, personalDividends: personalDiv, personalRaw,
+        personal: personalRaw ? personalAccount({ ...personalRaw, dividends: personalDiv }, params) : null,
+      }
+    })
+    reports.push({ period, params, summary, totalUnits, rows })
   }
 
-  const positions = investors.map((inv) => ({
-    inv,
-    ...replayPosition(inv.openingUnits, inv.openingCost, txs.filter((t) => t.investorId === inv.id)),
-  }))
-  const totalUnits = positions.reduce((a, p) => a + p.units, 0)
-  const summary = fundSummary(params, totalUnits)
+  const current = [...reports].reverse().find((r) => r.period.status === 'open') ?? reports[reports.length - 1]
+  return { reports, current, investors, txs, divs, history, areas, areaEntries }
+}
 
-  const rows = positions.map((p) => ({
-    id: p.inv.id,
-    name: p.inv.name,
-    notes: p.inv.notes,
-    units: p.units,
-    cost: p.cost,
-    share: totalUnits > 0 ? (p.units / totalUnits) * 100 : 0,
-    fund: fundAccount(p.units, p.cost, summary, totalUnits, params.fixedRate),
-    personalRaw: p.inv.personal ?? null,
-    personal: p.inv.personal ? personalAccount({ endCost: N(p.inv.personal.endCost), marketValue: N(p.inv.personal.marketValue) }, params) : null,
-  }))
+export type Report = {
+  period: Period
+  params: PeriodParams
+  summary: ReturnType<typeof fundSummary>
+  totalUnits: number
+  rows: {
+    id: number; name: string; notes: string | null; unitsEnd: number; cost: number; share: number
+    fund: ReturnType<typeof fundAccount>; fundDividends: number; personalDividends: number
+    personalRaw: { beginValue: number; deposits: number; withdrawals: number; marketValue: number } | null
+    personal: ReturnType<typeof personalAccount> | null
+  }[]
+}
 
-  const lastTxId = txs.length ? txs[txs.length - 1].id : 0
-  return { period, params, summary, totalUnits, rows, txs, lastTxId, investors }
+export type State = Awaited<ReturnType<typeof loadState>>
+
+/** Checks that a candidate list of transactions never drives a holding negative. */
+export function ledgerOk(st: State, candidate: LedgerTx[]) {
+  const opening = new Map(st.investors.map((i) => [i.id, i.openingUnits]))
+  return ledgerIsValid(opening, [...candidate].sort(byDate))
+}
+
+/** True when no investor's balance in any area ever goes negative. */
+export function areaLedgerOk(entries: AreaMove[]) {
+  const bal = new Map<string, number>()
+  for (const e of [...entries].sort(byDate)) {
+    const k = `${e.areaId}:${e.investorId}`
+    const v = (bal.get(k) ?? 0) + (e.type === 'deposit' ? e.amount : -e.amount)
+    if (v < -0.5) return false
+    bal.set(k, v)
+  }
+  return true
 }

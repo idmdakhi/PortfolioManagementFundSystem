@@ -1,17 +1,17 @@
 @include('partials/head')
-<div class="card"><div class="sub">ارزش هر واحد (NAV) — سال مالی منتهی به {{ st.period.endJalali }}</div>
-<div class="big">{{ fa2(st.summary.nav) }} ریال</div><div class="sub">مجموع {{ fa2(st.totalUnits) }} واحد</div></div>
+<div class="chips">
+@each(r in st.reports)
+<a href="/?p={{ r.period.id }}" class="{{ r.period.id == rep.period.id ? 'on' : '' }}">{{ r.period.label }}</a>
+@end
+</div>
+<div class="card"><div class="sub">ارزش هر واحد (NAV) در پایان دورهٔ {{ rep.period.label }} <span class="badge {{ rep.period.status == 'open' ? '' : 'cl' }}">{{ rep.period.status == 'open' ? 'باز' : 'بسته' }}</span></div>
+<div class="big">{{ fa2(rep.summary.nav) }} ریال</div>
+<div class="sub">مجموع {{ fa2(rep.totalUnits) }} واحد — از {{ jd(rep.period.startOn) }} تا {{ jd(rep.period.endOn) }}</div></div>
 <div class="g">
 <div class="card"><h2>سود دوره</h2>
-<div class="r"><span>بهای تمام‌شده پایان دوره</span><b>{{ fa(st.summary.endCost) }}</b></div>
-<div class="r"><span>ارزش روز سبد</span><b>{{ fa(st.params.marketValue) }}</b></div>
-<div class="r"><span>سود ناخالص</span><b>{{ fa(st.summary.gross) }}</b></div>
-<div class="r"><span>سود ثابت مشتری</span><b>{{ fa(st.summary.fixed) }}</b></div>
-<div class="r"><span>سود مازاد</span><b>{{ fa(st.summary.excessBase) }}</b></div>
-<div class="r t"><span>سود کل صندوق</span><b>{{ fa(st.summary.fundProfit) }}</b></div></div>
+<div class="r "><span>ارزش روز ابتدای دوره</span><b>{{ fa(rep.params.beginMarket) }}</b></div><div class="r "><span>واریز و صدور در دوره</span><b>{{ fa(rep.params.deposits) }}</b></div><div class="r "><span>برداشت و ابطال در دوره</span><b>{{ fa(rep.params.withdrawals) }}</b></div><div class="r "><span>سرمایهٔ پایان دوره</span><b>{{ fa(rep.summary.capital) }}</b></div><div class="r "><span>ارزش روز پایانی</span><b>{{ fa(rep.params.marketValue) }}</b></div><div class="r "><span>سود تقسیمی صندوق</span><b>{{ fa(rep.params.dividends) }}</b></div><div class="r "><span>سود ناخالص</span><b>{{ fa(rep.summary.gross) }}</b></div><div class="r "><span>سود ثابت مشتری</span><b>{{ fa(rep.summary.fixed) }}</b></div><div class="r "><span>سود مازاد</span><b>{{ fa(rep.summary.excessBase) }}</b></div><div class="r t"><span>سود خالص صندوق (پس از کارمزد)</span><b>{{ fa(rep.summary.profit) }}</b></div>
+</div>
 <div class="card"><h2>کارمزد سبدگردان</h2>
-<div class="r"><span>کارمزد ثابت دوره</span><b>{{ fa(st.summary.mgmtFee) }}</b></div>
-<div class="r"><span>سهم از مازاد</span><b>{{ fa(st.summary.excessFee) }}</b></div>
-<div class="r"><span>تخفیف</span><b>{{ fa(st.params.discount) }}</b></div>
-<div class="r t"><span>کارمزد نهایی (با سقف)</span><b>{{ fa(st.summary.fee) }}</b></div></div></div>
+<div class="r "><span>کارمزد ثابت</span><b>{{ fa(rep.summary.mgmtFee) }}</b></div><div class="r "><span>سهم از مازاد</span><b>{{ fa(rep.summary.excessFee) }}</b></div><div class="r "><span>تخفیف</span><b>{{ fa(rep.params.discount) }}</b></div><div class="r t"><span>کارمزد نهایی (با سقف)</span><b>{{ fa(rep.summary.fee) }}</b></div><div class="r "><span>بازده ناخالص دوره</span><b>{{ pct(rep.summary.returnPct) }}</b></div>
+</div></div>
 @include('partials/foot')

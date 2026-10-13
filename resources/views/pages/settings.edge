@@ -1,20 +1,15 @@
 @include('partials/head')
-<div class="card"><h2>به‌روزرسانی ارزش روز سبد</h2><form method="POST" action="/settings/valuation">{{ csrfField() }}<div class="g">
-<div><label>ارزش روز کل سبد (ریال)، با احتساب تراکنش‌های ثبت‌شده تا الان</label><input name="marketValue" type="number" step="any" value="{{ Math.round(st.params.marketValue) }}" required></div></div><p><button>ثبت ارزش</button></p></form></div>
+@if(rep.period.status == 'open')
+<div class="card"><h2>ارزش‌گذاری روز سبد (دورهٔ {{ rep.period.label }})</h2><form method="POST" action="/settings/valuation">{{ csrfField() }}<div class="g">
+<div><label>ارزش روز کل سبد (ریال)، با احتساب تراکنش‌ها تا آن روز</label><input name="marketValue" class="money" inputmode="numeric" value="{{ money(rep.params.marketValue) }}" required></div>
+<div><label>تاریخ ارزش‌گذاری (شمسی)</label><input name="valuationOn" dir="ltr" value="{{ today }}"></div></div><p><button>ثبت ارزش</button></p></form>
+<div class="sub">آخرین ارزش‌گذاری: {{ jd(rep.period.valuationOn) }}. صدور و ابطال‌های بعد از آن تاریخ به‌طور خودکار روی ارزش اضافه یا کم می‌شوند.</div></div>
 <div class="card"><h2>پارامترهای دوره</h2><form method="POST" action="/settings">{{ csrfField() }}<div class="g">
-<div><label>برچسب دوره</label><input name="label" type="text" step="any" value="{{ st.period.label }}" required></div>
-<div><label>پایان سال مالی</label><input name="endJalali" type="text" step="any" value="{{ st.period.endJalali }}" required></div>
-<div><label>تعداد ماه</label><input name="months" type="number" step="any" value="{{ st.period.months }}" required></div>
-<div><label>بهای تمام‌شده ابتدای دوره</label><input name="beginCost" type="number" step="any" value="{{ st.period.beginCost }}" required></div>
-<div><label>واریز ثبت‌شده پیش از سیستم</label><input name="openingDeposits" type="number" step="any" value="{{ st.period.openingDeposits }}" required></div>
-<div><label>برداشت ثبت‌شده پیش از سیستم</label><input name="openingWithdrawals" type="number" step="any" value="{{ st.period.openingWithdrawals }}" required></div>
-<div><label>سود نقدی سهام</label><input name="dividends" type="number" step="any" value="{{ st.period.dividends }}" required></div>
-<div><label>سود ثابت مشتری (٪ سالانه)</label><input name="fixedRate" type="number" step="any" value="{{ st.period.fixedRate }}" required></div>
-<div><label>کارمزد ثابت صندوق (٪ سالانه)</label><input name="mgmtRate" type="number" step="any" value="{{ st.period.mgmtRate }}" required></div>
-<div><label>سهم از مازاد صندوق (٪)</label><input name="excessRate" type="number" step="any" value="{{ st.period.excessRate }}" required></div>
-<div><label>سقف کارمزد (ده میلیون ریال)</label><input name="feeCap" type="number" step="any" value="{{ st.period.feeCap }}" required></div>
-<div><label>تخفیف و اصلاحات</label><input name="discount" type="number" step="any" value="{{ st.period.discount }}" required></div>
-<div><label>کارمزد ثابت شخصی (٪ بهای تمام‌شده)</label><input name="mgmtRate2" type="number" step="any" value="{{ st.period.mgmtRate2 }}" required></div>
-<div><label>سهم از مازاد شخصی (٪)</label><input name="excessRate2" type="number" step="any" value="{{ st.period.excessRate2 }}" required></div>
+<div><label>برچسب دوره</label><input name="label"  value="{{ rep.period.label }}" required></div><div><label>شروع (شمسی)</label><input name="startJalali" dir="ltr" value="{{ jraw(rep.period.startOn) }}" required></div><div><label>پایان (شمسی)</label><input name="endJalali" dir="ltr" value="{{ jraw(rep.period.endOn) }}" required></div><div><label>تعداد ماه دوره</label><input name="months" inputmode="decimal" value="{{ rep.period.months }}" required></div><div><label>ارزش روز ابتدای دوره</label><input name="beginMarket" class="money" inputmode="numeric" value="{{ money(rep.period.beginMarket) }}" required></div><div><label>واریز ثبت‌شده پیش از سیستم</label><input name="openingDeposits" class="money" inputmode="numeric" value="{{ money(rep.period.openingDeposits) }}" required></div><div><label>برداشت ثبت‌شده پیش از سیستم</label><input name="openingWithdrawals" class="money" inputmode="numeric" value="{{ money(rep.period.openingWithdrawals) }}" required></div><div><label>سود ثابت مشتری (٪ سالانه)</label><input name="fixedRate" inputmode="decimal" value="{{ rep.period.fixedRate }}" required></div><div><label>کارمزد ثابت صندوق (٪)</label><input name="mgmtRate" inputmode="decimal" value="{{ rep.period.mgmtRate }}" required></div><div><label>سهم از مازاد صندوق (٪)</label><input name="excessRate" inputmode="decimal" value="{{ rep.period.excessRate }}" required></div><div><label>سقف کارمزد (ده میلیون ریال)</label><input name="feeCap" inputmode="decimal" value="{{ rep.period.feeCap }}" required></div><div><label>تخفیف و اصلاحات</label><input name="discount" class="money" inputmode="numeric" value="{{ money(rep.period.discount) }}" required></div><div><label>کارمزد ثابت حساب شخصی (٪ سالانه)</label><input name="mgmtRate2" inputmode="decimal" value="{{ rep.period.mgmtRate2 }}" required></div><div><label>سهم از مازاد حساب شخصی (٪)</label><input name="excessRate2" inputmode="decimal" value="{{ rep.period.excessRate2 }}" required></div>
 </div><p><button>ذخیره</button></p></form></div>
+<div class="card"><h2>بستن دوره</h2><form method="POST" action="/settings/close" data-confirm="دورهٔ {{ rep.period.label }} بسته شود؟ تراکنش‌های آن قفل می‌شوند.">{{ csrfField() }}
+<div class="sub">ارزش روز فعلی به‌عنوان ارزش پایانی ثبت می‌شود و دورهٔ بعد با همین ارزش شروع می‌شود. پیش از بستن، ارزش‌گذاری پایان دوره را وارد کنید.</div><p><button class="danger">بستن دوره و شروع دورهٔ بعد</button></p></form></div>
+@else
+<div class="card">دورهٔ بازی وجود ندارد.</div>
+@end
 @include('partials/foot')

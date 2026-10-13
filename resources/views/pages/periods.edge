@@ -1,0 +1,25 @@
+@include('partials/head')
+<div class="card sc"><h2>سود و زیان صندوق به تفکیک دوره</h2><table><tr><th>دوره</th><th>وضعیت</th><th class="num">سرمایه</th><th class="num">ارزش پایانی</th><th class="num">سود تقسیمی</th><th class="num">سود ناخالص</th><th class="num">کارمزد</th><th class="num">سود خالص</th><th class="num">بازده</th><th class="num">NAV</th></tr>
+@each(r in st.reports)
+<tr><td><a href="/?p={{ r.period.id }}">{{ r.period.label }}</a></td><td><span class="badge {{ r.period.status == 'open' ? '' : 'cl' }}">{{ r.period.status == 'open' ? 'باز' : 'بسته' }}</span></td><td class="num">{{ fa(r.summary.capital) }}</td><td class="num">{{ fa(r.params.marketValue) }}</td><td class="num">{{ fa(r.params.dividends) }}</td><td class="num">{{ fa(r.summary.gross) }}</td><td class="num">{{ fa(r.summary.fee) }}</td><td class="num">{{ fa(r.summary.profit) }}</td><td class="num">{{ pct(r.summary.returnPct) }}</td><td class="num">{{ fa2(r.summary.nav) }}</td></tr>
+@end
+</table></div>
+<div class="card sc"><h2>سود و زیان خالص هر سرمایه‌گذار در صندوق (حساب صندوقی)</h2><table><tr><th>نام</th>
+@each(r in st.reports)
+<th class="num">{{ r.period.label }}</th>
+@end
+</tr>
+@each(inv in st.investors)
+<tr><td><a href="/investors/{{ inv.id }}">{{ inv.name }}</a></td>
+@each(r in st.reports)
+<td class="num {{ cls(r.rows.find((x) => x.id == inv.id).fund.net) }}">{{ fa(r.rows.find((x) => x.id == inv.id).fund.net) }}</td>
+@end
+</tr>
+@end
+</table></div>
+<div class="card sc"><h2>سوابق قبل از سیستم</h2><table><tr><th>سال</th><th class="num">بازدهی (٪)</th><th class="num">کارمزد سبدگردان</th></tr>
+@each(h in st.history)
+<tr><td>{{ h.label }}</td><td class="num pos">{{ fa2(h.returnPct) }}</td><td class="num">{{ fa(h.fee) }}</td></tr>
+@end
+</table></div>
+@include('partials/foot')

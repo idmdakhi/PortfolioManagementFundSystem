@@ -1,12 +1,14 @@
 @include('partials/head')
-<div class="card sc"><table><tr><th>نام</th><th>واحد</th><th>سهم</th><th>بهای تمام‌شده</th><th>ارزش</th><th>سود</th></tr>
-@each(r in st.rows)
-<tr><td><a href="/investors/{{ r.id }}">{{ r.name }}</a></td><td>{{ fa2(r.units) }}</td><td>٪{{ fa2(r.share) }}</td><td>{{ fa(r.cost) }}</td><td>{{ fa(r.fund.value) }}</td><td class="{{ cls(r.fund.gross) }}">{{ fa(r.fund.gross) }}</td></tr>
+<div class="sub">دورهٔ {{ rep.period.label }}</div>
+<div class="card sc"><table><tr><th>نام</th><th class="num">واحد</th><th class="num">سهم</th><th class="num">بهای تمام‌شده</th><th class="num">ارزش (پس از کارمزد)</th><th class="num">سود خالص دوره</th></tr>
+@each(r in rep.rows)
+<tr><td>{{ r.name }} <span class="sub"><a href="/investors/{{ r.id }}">صندوق</a> · <a href="/investors/{{ r.id }}/personal">شخصی</a> · <a href="/investors/{{ r.id }}/report">گزارش</a></span></td><td class="num">{{ fa2(r.unitsEnd) }}</td><td class="num">{{ pct(r.share) }}</td><td class="num">{{ fa(r.cost) }}</td><td class="num">{{ fa(r.fund.value) }}</td><td class="num {{ cls(r.fund.net) }}">{{ fa(r.fund.net) }}</td></tr>
 @end
 </table></div>
 @if(auth.user.role == 'admin')
 <div class="card"><h2>افزودن سرمایه‌گذار</h2><form method="POST" action="/investors">{{ csrfField() }}<div class="g">
-<div><label>نام</label><input name="name" required></div><div><label>واحد اولیه</label><input name="openingUnits" type="number" step="any" value="0"></div>
-<div><label>بهای تمام‌شده اولیه</label><input name="openingCost" type="number" step="any" value="0"></div></div><p><button>افزودن</button></p></form></div>
+<div><label>نام</label><input name="name" required></div>
+<div><label>واحد اولیه (معمولاً ۰؛ خرید را با «صدور» ثبت کنید)</label><input class="money" inputmode="decimal" name="openingUnits" value="0"></div>
+<div><label>بهای تمام‌شدهٔ اولیه</label><input class="money" inputmode="numeric" name="openingCost" value="0"></div></div><p><button>افزودن</button></p></form></div>
 @end
 @include('partials/foot')

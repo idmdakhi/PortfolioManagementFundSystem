@@ -7,16 +7,90 @@
 import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
+export class AreaEntrySchema extends BaseModel {
+  static $columns = ['amount', 'areaId', 'batchId', 'createdAt', 'createdBy', 'id', 'investorId', 'note', 'occurredOn', 'type'] as const
+  $columns = AreaEntrySchema.$columns
+  @column()
+  declare amount: bigint | number
+  @column()
+  declare areaId: number
+  @column()
+  declare batchId: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare createdBy: number | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare investorId: number
+  @column()
+  declare note: string | null
+  @column()
+  declare occurredOn: string
+  @column()
+  declare type: string
+}
+
+export class AreaSchema extends BaseModel {
+  static $columns = ['createdAt', 'id', 'kind', 'marketValue', 'name', 'notes', 'updatedAt', 'valuedOn'] as const
+  $columns = AreaSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare kind: string
+  @column()
+  declare marketValue: bigint | number
+  @column()
+  declare name: string
+  @column()
+  declare notes: string | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare valuedOn: string | null
+}
+
+export class DividendSchema extends BaseModel {
+  static $columns = ['amount', 'createdAt', 'createdBy', 'id', 'investorId', 'note', 'occurredOn', 'scope', 'updatedAt'] as const
+  $columns = DividendSchema.$columns
+  @column()
+  declare amount: bigint | number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare createdBy: number | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare investorId: number | null
+  @column()
+  declare note: string | null
+  @column()
+  declare occurredOn: string
+  @column()
+  declare scope: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class HistoryPeriodSchema extends BaseModel {
+  static $columns = ['fee', 'id', 'label', 'returnPct'] as const
+  $columns = HistoryPeriodSchema.$columns
+  @column()
+  declare fee: bigint | number
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare label: string
+  @column()
+  declare returnPct: number
+}
+
 export class InvestorSchema extends BaseModel {
-  static $columns = [
-    'createdAt',
-    'id',
-    'name',
-    'notes',
-    'openingCost',
-    'openingUnits',
-    'updatedAt',
-  ] as const
+  static $columns = ['createdAt', 'id', 'name', 'notes', 'openingCost', 'openingUnits', 'updatedAt'] as const
   $columns = InvestorSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -34,39 +108,64 @@ export class InvestorSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
-export class PeriodSchema extends BaseModel {
-  static $columns = [
-    'beginCost',
-    'createdAt',
-    'discount',
-    'dividends',
-    'endJalali',
-    'excessRate',
-    'excessRate2',
-    'feeCap',
-    'fixedRate',
-    'id',
-    'label',
-    'marketValueBase',
-    'mgmtRate',
-    'mgmtRate2',
-    'months',
-    'openingDeposits',
-    'openingWithdrawals',
-    'updatedAt',
-    'valuationTxId',
-  ] as const
-  $columns = PeriodSchema.$columns
+export class PeriodSnapshotSchema extends BaseModel {
+  static $columns = ['beginCost', 'createdAt', 'deposits', 'dividends', 'endJalali', 'excessFee', 'excessProfit', 'fixedProfit', 'fundProfit', 'grossProfit', 'id', 'label', 'marketValue', 'mgmtFee', 'months', 'nav', 'periodId', 'totalCost', 'totalFee', 'totalUnits', 'withdrawals'] as const
+  $columns = PeriodSnapshotSchema.$columns
   @column()
   declare beginCost: bigint | number
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
   @column()
-  declare discount: bigint | number
+  declare deposits: bigint | number
   @column()
   declare dividends: bigint | number
   @column()
   declare endJalali: string
+  @column()
+  declare excessFee: bigint | number
+  @column()
+  declare excessProfit: bigint | number
+  @column()
+  declare fixedProfit: bigint | number
+  @column()
+  declare fundProfit: bigint | number
+  @column()
+  declare grossProfit: bigint | number
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare label: string
+  @column()
+  declare marketValue: bigint | number
+  @column()
+  declare mgmtFee: bigint | number
+  @column()
+  declare months: number
+  @column()
+  declare nav: number
+  @column()
+  declare periodId: number
+  @column()
+  declare totalCost: bigint | number
+  @column()
+  declare totalFee: bigint | number
+  @column()
+  declare totalUnits: number
+  @column()
+  declare withdrawals: bigint | number
+}
+
+export class PeriodSchema extends BaseModel {
+  static $columns = ['beginMarket', 'createdAt', 'discount', 'endOn', 'excessRate', 'excessRate2', 'feeCap', 'fixedRate', 'id', 'label', 'marketValueBase', 'mgmtRate', 'mgmtRate2', 'months', 'openingDeposits', 'openingWithdrawals', 'startOn', 'status', 'updatedAt', 'valuationOn'] as const
+  $columns = PeriodSchema.$columns
+  @column()
+  declare beginMarket: bigint | number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare discount: bigint | number
+  @column()
+  declare endOn: string
   @column()
   declare excessRate: number
   @column()
@@ -91,29 +190,25 @@ export class PeriodSchema extends BaseModel {
   declare openingDeposits: bigint | number
   @column()
   declare openingWithdrawals: bigint | number
+  @column()
+  declare startOn: string
+  @column()
+  declare status: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
   @column()
-  declare valuationTxId: number
+  declare valuationOn: string
 }
 
 export class PersonalAccountSchema extends BaseModel {
-  static $columns = [
-    'beginCost',
-    'deposits',
-    'endCost',
-    'id',
-    'investorId',
-    'marketValue',
-    'withdrawals',
-  ] as const
+  static $columns = ['beginValue', 'deposits', 'dividends', 'id', 'investorId', 'marketValue', 'periodId', 'withdrawals'] as const
   $columns = PersonalAccountSchema.$columns
   @column()
-  declare beginCost: bigint | number
+  declare beginValue: bigint | number
   @column()
   declare deposits: bigint | number
   @column()
-  declare endCost: bigint | number
+  declare dividends: bigint | number
   @column({ isPrimary: true })
   declare id: number
   @column()
@@ -121,33 +216,34 @@ export class PersonalAccountSchema extends BaseModel {
   @column()
   declare marketValue: bigint | number
   @column()
+  declare periodId: number
+  @column()
   declare withdrawals: bigint | number
 }
 
 export class TransactionSchema extends BaseModel {
-  static $columns = [
-    'amount',
-    'createdAt',
-    'createdBy',
-    'id',
-    'investorId',
-    'nav',
-    'note',
-    'occurredOn',
-    'type',
-    'units',
-  ] as const
+  static $columns = ['amount', 'batchId', 'createdAt', 'createdBy', 'editNote', 'editedAt', 'editedBy', 'id', 'investorId', 'isDeleted', 'nav', 'note', 'occurredOn', 'reversesId', 'type', 'units', 'updatedAt'] as const
   $columns = TransactionSchema.$columns
   @column()
   declare amount: bigint | number
+  @column()
+  declare batchId: string | null
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
   @column()
   declare createdBy: number | null
+  @column()
+  declare editNote: string | null
+  @column.dateTime()
+  declare editedAt: DateTime | null
+  @column()
+  declare editedBy: number | null
   @column({ isPrimary: true })
   declare id: number
   @column()
   declare investorId: number
+  @column()
+  declare isDeleted: boolean
   @column()
   declare nav: number
   @column()
@@ -155,21 +251,17 @@ export class TransactionSchema extends BaseModel {
   @column()
   declare occurredOn: string
   @column()
+  declare reversesId: number | null
+  @column()
   declare type: string
   @column()
   declare units: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = [
-    'createdAt',
-    'email',
-    'fullName',
-    'id',
-    'password',
-    'role',
-    'updatedAt',
-  ] as const
+  static $columns = ['createdAt', 'email', 'fullName', 'id', 'password', 'role', 'updatedAt'] as const
   $columns = UserSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

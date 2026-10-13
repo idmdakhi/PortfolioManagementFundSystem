@@ -1,10 +1,16 @@
 import edge from 'edge.js'
+import { faDigits, toJalaliStr } from '#services/jalali'
 
 const n0 = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 0 })
 const n2 = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 2 })
-const jd = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { dateStyle: 'medium' })
+const latin = new Intl.NumberFormat('en-US', { maximumFractionDigits: 6 })
 
-edge.global('fa', (n: number) => n0.format(Math.round(n ?? 0)))
+edge.global('fa', (n: number | bigint) => n0.format(Math.round(Number(n ?? 0))))
 edge.global('fa2', (n: number) => n2.format(n ?? 0))
-edge.global('jdate', (s: string) => jd.format(new Date(s)))
+edge.global('pct', (n: number) => `٪${n2.format(n ?? 0)}`)
+/** Thousands-separated Latin digits for input fields. */
+edge.global('money', (n: number | bigint | null | undefined) => (n === null || n === undefined ? '' : latin.format(Math.round(Number(n)))))
+edge.global('jd', (iso: string) => (iso ? faDigits(toJalaliStr(iso)) : ''))
+edge.global('jraw', (iso: string) => (iso ? toJalaliStr(iso) : ''))
 edge.global('cls', (n: number) => (n >= 0 ? 'pos' : 'neg'))
+edge.global('typeFa', (t: string) => (t === 'issue' ? 'صدور' : 'ابطال'))

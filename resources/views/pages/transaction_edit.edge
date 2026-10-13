@@ -1,0 +1,15 @@
+@include('partials/head')
+<div class="card"><h2>ویرایش تراکنش</h2>
+<form method="POST" action="/transactions/{{ tx.id }}">{{ csrfField() }}<div class="g">
+<div><label>سرمایه‌گذار</label><select name="investorId">
+@each(i in st.investors)
+<option value="{{ i.id }}" {{ i.id == tx.investorId ? 'selected' : '' }}>{{ i.name }}</option>
+@end
+</select></div>
+<div><label>نوع</label><select name="type"><option value="issue" {{ tx.type == 'issue' ? 'selected' : '' }}>صدور (واریز)</option><option value="redeem" {{ tx.type == 'redeem' ? 'selected' : '' }}>ابطال (برداشت)</option></select></div>
+<div><label>مبلغ (ریال)</label><input class="money" inputmode="numeric" name="amount" value="{{ money(tx.amount) }}" required></div>
+<div><label>NAV (برای تغییر، مقدار تازه بنویسید)</label><input class="money" inputmode="decimal" name="nav" value="{{ tx.nav }}"></div>
+<div><label>تاریخ شمسی</label><input name="occurredOn" dir="ltr" placeholder="1405/07/21" value="{{ jraw(tx.occurredOn) }}"></div>
+<div><label>یادداشت</label><input name="note" value="{{ tx.note || '' }}"></div></div><p><button>ذخیره</button></p></form>
+<p><a href="/transactions">بازگشت</a></p></div>
+@include('partials/foot')

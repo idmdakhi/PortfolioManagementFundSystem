@@ -2,8 +2,10 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { loadState } from '#services/fund_state'
 
 export default class DashboardController {
-  async index({ view }: HttpContext) {
+  async index({ view, request }: HttpContext) {
     const st = await loadState()
-    return view.render('pages/dashboard', { nav: 'dash', st })
+    const pid = Number(request.input('p'))
+    const rep = st.reports.find((r) => r.period.id === pid) ?? st.current
+    return view.render('pages/dashboard', { nav: 'dash', st, rep })
   }
 }

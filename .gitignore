@@ -2,7 +2,9 @@
 node_modules
 build
 tmp
+
 !tmp/db.sqlite3
+
 # Secrets
 .env
 .env.local

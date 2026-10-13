@@ -1,0 +1,42 @@
+@include('partials/head')
+@if(auth.user.role == 'admin')
+<div class="card"><h2>ثبت حرکت گروهی</h2>
+<div class="sub">یک مبلغ را بین چند نفر تقسیم و از مبدأ به مقصد منتقل کنید. مثال: واریز تازه به صندوق برای چند نفر، یا برداشت از صندوق و واریز به یک ملک.</div>
+<form method="POST" action="/movements">{{ csrfField() }}<br><div class="g">
+<div><label>از (مبدأ)</label><select name="from"><option value="external">خارج از سیستم (پول تازه)</option><option value="fund" selected>صندوق (ابطال واحد)</option>
+@each(a in st.areas)
+<option value="area:{{ a.id }}">حوزه: {{ a.name }}</option>
+@end
+</select></div>
+<div><label>به (مقصد)</label><select name="to"><option value="fund">صندوق (صدور واحد)</option><option value="external">خارج از سیستم (برداشت نقدی)</option>
+@each(a in st.areas)
+<option value="area:{{ a.id }}">حوزه: {{ a.name }}</option>
+@end
+</select></div>
+<div><label>روش تقسیم</label><select name="mode"><option value="equal">مساوی</option><option value="percent">درصدی</option><option value="amount">مبلغ جداگانه برای هر نفر</option></select></div>
+<div><label>مبلغ کل (ریال) — برای «مبلغ جداگانه» لازم نیست</label><input class="money" inputmode="numeric" name="total"></div>
+<div><label>تاریخ شمسی</label><input name="occurredOn" dir="ltr" value="{{ today }}"></div>
+<div><label>یادداشت</label><input name="note"></div></div>
+<div class="sc"><table><tr><th>انتخاب</th><th>سرمایه‌گذار</th><th class="num">مقدار (درصد یا مبلغ؛ در حالت «مساوی» خالی)</th></tr>
+@each(i in st.investors)
+<tr><td><input type="checkbox" name="sel_{{ i.id }}" style="width:auto"></td><td>{{ i.name }}</td><td><input class="money" inputmode="decimal" name="val_{{ i.id }}" style="max-width:220px"></td></tr>
+@end
+</table></div>
+<p><button>ثبت</button></p></form>
+<div class="sub">برداشت از صندوق با NAV فعلی ({{ fa2(st.current.summary.nav) }}) انجام می‌شود و تاریخ باید داخل دورهٔ باز باشد.</div></div>
+@end
+<div class="card sc"><h2>حرکت‌های گروهی ثبت‌شده</h2><table><tr><th>تاریخ</th><th>یادداشت</th><th class="num">نفرات</th><th class="num">اثر روی صندوق</th><th class="num">اثر روی حوزه‌ها</th><th></th></tr>
+@each(g in list)
+<tr><td>{{ jd(g.date) }}</td><td>{{ g.note || '' }}</td><td class="num">{{ fa(g.people.size) }}</td><td class="num {{ cls(g.fund) }}">{{ fa(g.fund) }}</td><td class="num {{ cls(g.area) }}">{{ fa(g.area) }}</td>
+<td>
+@if(auth.user.role == 'admin' && !g.locked)
+<form method="POST" action="/movements/{{ g.batchId }}/delete" data-confirm="کل این گروه حذف شود؟">{{ csrfField() }}<button class="sm danger">حذف گروه</button></form>
+@elseif(g.locked)
+<span class="sub">قفل (دورهٔ بسته)</span>
+@end
+</td></tr>
+@else
+<tr><td colspan="6" class="sub">هنوز حرکتی ثبت نشده.</td></tr>
+@end
+</table><div class="sub">اثر مثبت روی صندوق یعنی ورود پول به صندوق؛ منفی یعنی خروج.</div></div>
+@include('partials/foot')

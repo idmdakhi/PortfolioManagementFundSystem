@@ -65,6 +65,7 @@
     "@vinejs/vine": "^4.4.0",
     "better-sqlite3": "^12.5.0",
     "edge.js": "^6.4.0",
+    "jalaali-js": "^2.0.1",
     "luxon": "^3.7.2",
     "reflect-metadata": "^0.2.2"
   },
