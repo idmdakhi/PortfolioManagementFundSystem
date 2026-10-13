@@ -42,7 +42,7 @@ node ace test unit
 - `database/migrations`: جدول‌ها (`users` با `role`, `periods`, `investors`, `transactions`, `personal_accounts`, `dividends`, `history_periods`)
 - `database/schema.ts`: کلاس‌های مدل که Lucid از روی migrationها می‌سازد (دستی ویرایش نکنید)
 - `database/seeders/main_seeder.ts`: دادهٔ اولیه از اکسل
-- دیتابیس: فایل `tmp/db.sqlite3` (برای پشتیبان‌گیری همین فایل را کپی کنید)
+- دیتابیس: فایل `tmp/db.sqlite3` (برای پشتیبان‌گیری همین فایل را کپی کنید). همچنین از صفحهٔ تنظیمات می‌توانید پشتیبان کامل JSON دانلود یا بازیابی کنید.
 
 ## نکته‌های طراحی
 

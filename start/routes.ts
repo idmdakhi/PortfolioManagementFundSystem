@@ -49,6 +49,8 @@ router
         router.get('settings', [controllers.Settings, 'edit'])
         router.post('settings', [controllers.Settings, 'update'])
         router.post('settings/valuation', [controllers.Settings, 'valuation'])
+        router.get('settings/backup', [controllers.Settings, 'backup'])
+        router.post('settings/restore', [controllers.Settings, 'restore'])
         router.post('settings/close', [controllers.Periods, 'close'])
       })
       .use(middleware.role({ roles: ['admin'] }))

@@ -12,4 +12,23 @@
 @else
 <div class="card">دورهٔ بازی وجود ندارد.</div>
 @end
+
+<div class="card">
+  <h2>پشتیبان‌گیری JSON</h2>
+  <div class="sub">یک فایل JSON کامل از تمام داده‌ها (دوره‌ها، سرمایه‌گذاران، تراکنش‌ها، حوزه‌ها، سودها و کاربران) دانلود کنید. این فایل مستقل از دیتابیس SQLite است و برای انتقال یا بازیابی مناسب است.</div>
+  <p>
+    <a class="btn" href="/settings/backup">دانلود پشتیبان JSON</a>
+  </p>
+  <hr style="margin:1rem 0;border:none;border-top:1px solid #ddd">
+  <h3>بازیابی از فایل JSON</h3>
+  <div class="sub">با بازیابی، <strong>تمام داده‌های فعلی جایگزین</strong> می‌شوند. قبل از بازیابی حتماً یک پشتیبان جدید بگیرید.</div>
+  <form method="POST" action="/settings/restore" enctype="multipart/form-data" data-confirm="آیا مطمئنید؟ تمام داده‌های فعلی با محتوای فایل جایگزین می‌شود.">
+    {{ csrfField() }}
+    <div class="g">
+      <div><label>فایل پشتیبان (.json)</label><input type="file" name="backup" accept=".json,application/json" required></div>
+    </div>
+    <p><button class="danger">بازیابی پشتیبان</button></p>
+  </form>
+</div>
+
 @include('partials/foot')
