@@ -2,18 +2,18 @@
   "format": "fund-backup",
   "version": 1,
   "app": "fund-server",
-  "exportedAt": "2026-10-14T08:05:56.908Z",
+  "exportedAt": "2026-10-14T09:38:47.039Z",
   "counts": {
     "periods": 2,
     "investors": 9,
     "history_periods": 6,
-    "areas": 0,
+    "areas": 1,
     "personal_accounts": 18,
     "dividends": 1,
-    "transactions": 1,
-    "area_entries": 0,
+    "transactions": 0,
+    "area_entries": 4,
     "options": 16,
-    "movements": 0
+    "movements": 1
   },
   "tables": {
     "periods": [
@@ -36,8 +36,8 @@
         "discount": 0,
         "mgmt_rate_2": 1,
         "excess_rate_2": 20,
-        "created_at": "2026-10-13 10:10:17",
-        "updated_at": "2026-10-13 10:10:17"
+        "created_at": "2026-10-14 09:38:47",
+        "updated_at": "2026-10-14 09:38:47"
       },
       {
         "id": 2,
@@ -49,8 +49,8 @@
         "begin_market": 28748892884,
         "opening_deposits": 0,
         "opening_withdrawals": 0,
-        "market_value_base": 29248892884,
-        "valuation_on": "2026-10-13",
+        "market_value_base": 28748892884,
+        "valuation_on": "2026-03-20",
         "fixed_rate": 20,
         "mgmt_rate": 1,
         "excess_rate": 10,
@@ -58,8 +58,8 @@
         "discount": 0,
         "mgmt_rate_2": 1,
         "excess_rate_2": 20,
-        "created_at": "2026-10-13 10:10:17",
-        "updated_at": "2026-10-13 11:28:37"
+        "created_at": "2026-10-14 09:38:47",
+        "updated_at": "2026-10-14 09:38:47"
       }
     ],
     "investors": [
@@ -69,17 +69,17 @@
         "notes": null,
         "opening_units": 485557,
         "opening_cost": 8526778675.577518,
-        "created_at": "2026-10-13 10:10:18",
-        "updated_at": "2026-10-13 10:10:18"
+        "created_at": "2026-10-14 09:38:47",
+        "updated_at": "2026-10-14 09:38:47"
       },
       {
         "id": 2,
         "name": "پژمان",
-        "notes": null,
+        "notes": "پژمان (برادر)",
         "opening_units": 343253.27155817015,
         "opening_cost": 6027808632.651624,
-        "created_at": "2026-10-13 10:10:19",
-        "updated_at": "2026-10-13 10:10:19"
+        "created_at": "2026-10-14 09:38:47",
+        "updated_at": "2026-10-14 09:38:47"
       },
       {
         "id": 3,
@@ -87,8 +87,8 @@
         "notes": null,
         "opening_units": 245000,
         "opening_cost": 4302400697.583378,
-        "created_at": "2026-10-13 10:10:19",
-        "updated_at": "2026-10-13 10:10:19"
+        "created_at": "2026-10-14 09:38:47",
+        "updated_at": "2026-10-14 09:38:47"
       },
       {
         "id": 4,
@@ -96,53 +96,53 @@
         "notes": null,
         "opening_units": 215825,
         "opening_cost": 3790063798.1874795,
-        "created_at": "2026-10-13 10:10:20",
-        "updated_at": "2026-10-13 10:10:20"
+        "created_at": "2026-10-14 09:38:47",
+        "updated_at": "2026-10-14 09:38:47"
       },
       {
         "id": 5,
         "name": "زهرا (خاله)",
-        "notes": null,
+        "notes": "خاله زهرا و در حساب مادر",
         "opening_units": 0,
-        "opening_cost": 0,
-        "created_at": "2026-10-13 10:10:21",
-        "updated_at": "2026-10-13 10:10:21"
+        "opening_cost": 0.0,
+        "created_at": "2026-10-14 09:38:47",
+        "updated_at": "2026-10-14 09:38:47"
       },
       {
         "id": 6,
         "name": "فرزانه (خاله)",
         "notes": null,
         "opening_units": 0,
-        "opening_cost": 0,
-        "created_at": "2026-10-13 10:10:22",
-        "updated_at": "2026-10-13 10:10:22"
+        "opening_cost": 0.0,
+        "created_at": "2026-10-14 09:38:47",
+        "updated_at": "2026-10-14 09:38:47"
       },
       {
         "id": 7,
         "name": "محبوبه (عمه)",
         "notes": null,
         "opening_units": 0,
-        "opening_cost": 0,
-        "created_at": "2026-10-13 10:10:23",
-        "updated_at": "2026-10-13 10:10:23"
+        "opening_cost": 0.0,
+        "created_at": "2026-10-14 09:38:47",
+        "updated_at": "2026-10-14 09:38:47"
       },
       {
         "id": 8,
         "name": "امینه (خاله)",
         "notes": null,
         "opening_units": 0,
-        "opening_cost": 0,
-        "created_at": "2026-10-13 10:10:24",
-        "updated_at": "2026-10-13 10:10:24"
+        "opening_cost": 0.0,
+        "created_at": "2026-10-14 09:38:47",
+        "updated_at": "2026-10-14 09:38:47"
       },
       {
         "id": 9,
         "name": "محمود منتجب",
-        "notes": null,
+        "notes": "آقای محمود منتجب",
         "opening_units": 0,
-        "opening_cost": 0,
-        "created_at": "2026-10-13 10:10:25",
-        "updated_at": "2026-10-13 10:10:25"
+        "opening_cost": 0.0,
+        "created_at": "2026-10-14 09:38:47",
+        "updated_at": "2026-10-14 09:38:47"
       }
     ],
     "history_periods": [
@@ -183,7 +183,18 @@
         "fee": 222100000
       }
     ],
-    "areas": [],
+    "areas": [
+      {
+        "id": 1,
+        "name": "زمین بلوار جمهوری ۵۳ (سهم ۵۵٪ سرمایه‌گذاری)",
+        "kind": "property",
+        "notes": "سهم 55٪ سرمایه گذاری یا شهرداری از زمین بلوار جمهوری 53 مادر. ارزش کل ۵۵٪: 66,000,000,000 ریال؛ ارزش کل ۱۰۰٪: 120,000,000,000؛ سهم شهرداری ۵۵٪: 39,688,521,400؛ ۱۰۰٪: 72,160,948,000؛ هر سهم: 108,500.34 ریال؛ زمین مادر ۴۵٪: 54,000,000,000 ریال (1,091,808 سهم) — جدا از این حوزه.",
+        "market_value": 66000000000,
+        "valued_on": "2026-03-20",
+        "created_at": "2026-10-14 09:38:47",
+        "updated_at": "2026-10-14 09:38:47"
+      }
+    ],
     "personal_accounts": [
       {
         "id": 1,
@@ -293,16 +304,16 @@
         "deposits": 404255663,
         "withdrawals": 238898191,
         "market_value": 1834096164,
-        "dividends": 0
+        "dividends": 4664740
       },
       {
         "id": 12,
         "investor_id": 6,
         "period_id": 2,
-        "begin_value": 1759885845,
+        "begin_value": 1758952897,
         "deposits": 0,
         "withdrawals": 0,
-        "market_value": 1759885845,
+        "market_value": 1758952897,
         "dividends": 0
       },
       {
@@ -375,32 +386,61 @@
         "occurred_on": "2026-03-20",
         "note": "سود نقدی سهام ۱۴۰۴",
         "created_by": null,
-        "created_at": "2026-10-13 10:10:18",
-        "updated_at": "2026-10-13 10:10:18"
+        "created_at": "2026-10-14 09:38:47",
+        "updated_at": "2026-10-14 09:38:47"
       }
     ],
-    "transactions": [
+    "transactions": [],
+    "area_entries": [
       {
         "id": 1,
+        "area_id": 1,
         "investor_id": 1,
-        "type": "issue",
-        "amount": 500000000,
-        "nav": 22273.733913382915,
-        "units": 22447.9650311159,
-        "occurred_on": "2026-10-13",
-        "note": null,
-        "created_by": 1,
-        "created_at": "2026-10-13 10:12:28",
-        "updated_at": "2026-10-13 10:12:28",
-        "is_deleted": 0,
-        "edited_by": null,
-        "edited_at": null,
-        "reverses_id": null,
-        "edit_note": null,
-        "batch_id": null
+        "type": "deposit",
+        "amount": 21325091691,
+        "occurred_on": "2026-03-20",
+        "note": "سهم زمین: 196,544 سهم — مبلغ طبق اکسل (ارزش پایان ۱۴۰۴)",
+        "batch_id": "XLS-LAND-1",
+        "created_by": null,
+        "created_at": "2026-10-14 09:38:47"
+      },
+      {
+        "id": 2,
+        "area_id": 1,
+        "investor_id": 2,
+        "type": "deposit",
+        "amount": 17645519511,
+        "occurred_on": "2026-03-20",
+        "note": "سهم زمین: 162,631 سهم — مبلغ طبق اکسل (ارزش پایان ۱۴۰۴)",
+        "batch_id": "XLS-LAND-1",
+        "created_by": null,
+        "created_at": "2026-10-14 09:38:47"
+      },
+      {
+        "id": 3,
+        "area_id": 1,
+        "investor_id": 3,
+        "type": "deposit",
+        "amount": 11231521652,
+        "occurred_on": "2026-03-20",
+        "note": "سهم زمین: 103,516 سهم — مبلغ طبق اکسل (ارزش پایان ۱۴۰۴)",
+        "batch_id": "XLS-LAND-1",
+        "created_by": null,
+        "created_at": "2026-10-14 09:38:47"
+      },
+      {
+        "id": 4,
+        "area_id": 1,
+        "investor_id": 4,
+        "type": "deposit",
+        "amount": 15797867146,
+        "occurred_on": "2026-03-20",
+        "note": "سهم زمین: 145,602 سهم — مبلغ طبق اکسل (ارزش پایان ۱۴۰۴)",
+        "batch_id": "XLS-LAND-1",
+        "created_by": null,
+        "created_at": "2026-10-14 09:38:47"
       }
     ],
-    "area_entries": [],
     "options": [
       {
         "id": 1,
@@ -563,6 +603,19 @@
         "sort": 15
       }
     ],
-    "movements": []
+    "movements": [
+      {
+        "id": 1,
+        "batch_id": "XLS-LAND-1",
+        "from_ref": "ext:external",
+        "to_ref": "area:1",
+        "method": "amount",
+        "total": 66000000000,
+        "occurred_on": "2026-03-20",
+        "note": "ورود از اکسل: زمین بلوار جمهوری",
+        "created_by": null,
+        "created_at": "2026-10-14 09:38:47"
+      }
+    ]
   }
 }
