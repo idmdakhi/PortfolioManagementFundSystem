@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { loadState } from '#services/fund_state'
 import { parseJalali, todayIso, todayJalali } from '#services/jalali'
 import { settingsValidator, valuationValidator } from '#validators/fund'
+import { exportBackup, importBackup, type BackupPayload } from '#services/backup'
 
 export default class SettingsController {
   async edit({ view }: HttpContext) {
@@ -43,4 +44,37 @@ export default class SettingsController {
     }
     return response.redirect('/settings')
   }
+
+  /** Download a full JSON backup of all data. */
+  async backup({ response }: HttpContext) {
+    const data = await exportBackup()
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')
+    const filename = `fund-backup-${stamp}.json`
+    response.header('Content-Type', 'application/json; charset=utf-8')
+    response.header('Content-Disposition', `attachment; filename="${filename}"`)
+    return response.send(JSON.stringify(data, null, 2))
+  }
+
+  /** Restore from an uploaded JSON backup (replaces all data). */
+  async restore({ request, response, session }: HttpContext) {
+    const file = request.file('backup', {
+      size: '50mb',
+      extnames: ['json'],
+    })
+    if (!file || !file.isValid) {
+      session.flash('error', 'فایل JSON معتبر انتخاب کنید.')
+      return response.redirect('/settings')
+    }
+    try {
+      const raw = await file.toBuffer()
+      const payload = JSON.parse(raw.toString('utf8')) as BackupPayload
+      await importBackup(payload)
+      session.flash('ok', 'پشتیبان با موفقیت بازیابی شد.')
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'خطا در بازیابی پشتیبان'
+      session.flash('error', msg)
+    }
+    return response.redirect('/settings')
+  }
 }
+

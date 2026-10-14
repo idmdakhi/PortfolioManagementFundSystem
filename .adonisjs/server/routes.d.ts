@@ -43,6 +43,8 @@ export type ScannedRoutes = {
     'settings.edit': { paramsTuple?: []; params?: {} }
     'settings.update': { paramsTuple?: []; params?: {} }
     'settings.valuation': { paramsTuple?: []; params?: {} }
+    'settings.backup': { paramsTuple?: []; params?: {} }
+    'settings.restore': { paramsTuple?: []; params?: {} }
     'periods.close': { paramsTuple?: []; params?: {} }
   }
   GET: {
@@ -65,6 +67,7 @@ export type ScannedRoutes = {
     'backup.export': { paramsTuple?: []; params?: {} }
     'dividends.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'settings.edit': { paramsTuple?: []; params?: {} }
+    'settings.backup': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
     'auth.show': { paramsTuple?: []; params?: {} }
@@ -86,6 +89,7 @@ export type ScannedRoutes = {
     'backup.export': { paramsTuple?: []; params?: {} }
     'dividends.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'settings.edit': { paramsTuple?: []; params?: {} }
+    'settings.backup': { paramsTuple?: []; params?: {} }
   }
   POST: {
     'auth.login': { paramsTuple?: []; params?: {} }
@@ -108,6 +112,7 @@ export type ScannedRoutes = {
     'dividends.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'settings.update': { paramsTuple?: []; params?: {} }
     'settings.valuation': { paramsTuple?: []; params?: {} }
+    'settings.restore': { paramsTuple?: []; params?: {} }
     'periods.close': { paramsTuple?: []; params?: {} }
   }
 }
