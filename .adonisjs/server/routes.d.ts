@@ -25,6 +25,13 @@ export type ScannedRoutes = {
     'transactions.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'transactions.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'transactions.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'options.index': { paramsTuple?: []; params?: {} }
+    'options.store': { paramsTuple?: []; params?: {} }
+    'options.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'options.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'backup.index': { paramsTuple?: []; params?: {} }
+    'backup.export': { paramsTuple?: []; params?: {} }
+    'backup.import': { paramsTuple?: []; params?: {} }
     'movements.store': { paramsTuple?: []; params?: {} }
     'movements.destroy': { paramsTuple: [ParamValue]; params: {'batch': ParamValue} }
     'areas.store': { paramsTuple?: []; params?: {} }
@@ -53,6 +60,9 @@ export type ScannedRoutes = {
     'dividends.index': { paramsTuple?: []; params?: {} }
     'formulas.show': { paramsTuple?: []; params?: {} }
     'transactions.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'options.index': { paramsTuple?: []; params?: {} }
+    'backup.index': { paramsTuple?: []; params?: {} }
+    'backup.export': { paramsTuple?: []; params?: {} }
     'dividends.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'settings.edit': { paramsTuple?: []; params?: {} }
   }
@@ -71,6 +81,9 @@ export type ScannedRoutes = {
     'dividends.index': { paramsTuple?: []; params?: {} }
     'formulas.show': { paramsTuple?: []; params?: {} }
     'transactions.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'options.index': { paramsTuple?: []; params?: {} }
+    'backup.index': { paramsTuple?: []; params?: {} }
+    'backup.export': { paramsTuple?: []; params?: {} }
     'dividends.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'settings.edit': { paramsTuple?: []; params?: {} }
   }
@@ -82,6 +95,10 @@ export type ScannedRoutes = {
     'transactions.store': { paramsTuple?: []; params?: {} }
     'transactions.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'transactions.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'options.store': { paramsTuple?: []; params?: {} }
+    'options.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'options.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'backup.import': { paramsTuple?: []; params?: {} }
     'movements.store': { paramsTuple?: []; params?: {} }
     'movements.destroy': { paramsTuple: [ParamValue]; params: {'batch': ParamValue} }
     'areas.store': { paramsTuple?: []; params?: {} }

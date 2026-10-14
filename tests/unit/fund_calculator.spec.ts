@@ -128,3 +128,48 @@ test.group('splitAmount', () => {
     assert.property(splitAmount('equal', 0, [0, 0]), 'error')
   })
 })
+
+import { validateBackup, TABLES } from '#services/backup'
+
+test.group('validateBackup', () => {
+  const ok = () => ({ format: 'fund-backup', version: 1, tables: Object.fromEntries(TABLES.map((t) => [t, [{ id: 1 }]])) })
+  test('older backups without options/movements are still accepted', ({ assert }) => {
+    const old = ok()
+    delete (old.tables as Record<string, unknown>)['options']
+    delete (old.tables as Record<string, unknown>)['movements']
+    assert.isNull(validateBackup(old))
+  })
+  test('accepts a well-formed backup', ({ assert }) => assert.isNull(validateBackup(ok())))
+  test('rejects wrong format, version, missing table and duplicate ids', ({ assert }) => {
+    assert.isNotNull(validateBackup(null))
+    assert.isNotNull(validateBackup({ ...ok(), format: 'x' }))
+    assert.isNotNull(validateBackup({ ...ok(), version: 2 }))
+    const missing = ok()
+    delete (missing.tables as Record<string, unknown>)['transactions']
+    assert.isNotNull(validateBackup(missing))
+    const dup = ok()
+    ;(dup.tables as Record<string, unknown>)['investors'] = [{ id: 1 }, { id: 1 }]
+    assert.isNotNull(validateBackup(dup))
+  })
+})
+
+test.group('splitAmount: weights and rounding', () => {
+  test('weights 2:1:1 split 100,000,000 into 50M / 25M / 25M', ({ assert }) => {
+    assert.deepEqual(splitAmount('weight', 100000000, [2, 1, 1]), { amounts: [50000000, 25000000, 25000000] })
+  })
+  test('weights keep the total even when it does not divide evenly', ({ assert }) => {
+    const r = splitAmount('weight', 100, [1, 1, 1]) as { amounts: number[] }
+    assert.equal(r.amounts.reduce((a, b) => a + b, 0), 100)
+  })
+  test('roundTo rounds shares and gives the leftover to the largest share', ({ assert }) => {
+    const r = splitAmount('weight', 100000000, [3, 3, 1], { roundTo: 1000000 }) as { amounts: number[] }
+    assert.equal(r.amounts.reduce((a, b) => a + b, 0), 100000000)
+    assert.isTrue(r.amounts.slice(1).every((a) => a % 1000000 === 0))
+    const eq = splitAmount('equal', 100000000, [0, 0, 0], { roundTo: 1000 }) as { amounts: number[] }
+    assert.equal(eq.amounts.reduce((a, b) => a + b, 0), 100000000)
+  })
+  test('rejects negative or all-zero weights', ({ assert }) => {
+    assert.property(splitAmount('weight', 1000, [0, 0]), 'error')
+    assert.property(splitAmount('weight', 1000, [1, -1]), 'error')
+  })
+})

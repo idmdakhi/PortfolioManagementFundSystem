@@ -1,0 +1,66 @@
+@include('partials/head')
+<div class="card"><h2>فهرست‌های قابل تنظیم</h2>
+<div class="sub">عنوان‌ها، ترتیب و فعال یا غیرفعال بودن گزینه‌ها را تغییر دهید یا گزینهٔ تازه اضافه کنید. گزینهٔ غیرفعال در فرم‌های جدید نمایش داده نمی‌شود ولی داده‌های قبلی همان‌طور می‌مانند.</div></div>
+
+<div class="card sc"><h2>نوع حوزه‌های سرمایه‌گذاری</h2><table><tr><th>عنوان</th><th>ترتیب</th><th>فعال</th><th></th></tr>
+@each(o in kinds)
+<tr><td><form id="f{{ o.id }}" method="POST" action="/options/{{ o.id }}">{{ csrfField() }}</form><input form="f{{ o.id }}" name="label" value="{{ o.label }}" required></td><td><input form="f{{ o.id }}" name="sort" type="number" value="{{ o.sort }}" style="width:80px"></td>
+<td><input form="f{{ o.id }}" type="checkbox" name="active" style="width:auto" {{ o.active ? 'checked' : '' }}></td>
+<td><div class="acts"><button form="f{{ o.id }}" class="sm">ذخیره</button><form method="POST" action="/options/{{ o.id }}/delete" data-confirm="حذف شود؟">{{ csrfField() }}<button class="sm danger">حذف</button></form></div></td></tr>
+@end
+</table>
+<form method="POST" action="/options"><br>{{ csrfField() }}<input type="hidden" name="list" value="area_kind"><div class="g"><div><label>نوع جدید (مثلاً سهام، طلا، سپرده)</label><input name="label" required></div></div><p><button class="sm">افزودن نوع</button></p></form></div>
+
+<div class="card sc"><h2>مبدأ و مقصد خارج از صندوق</h2>
+<div class="sub">مثلاً «حساب بانکی»، «برداشت نقدی»، «سپرده». در «حرکت گروهی» هم به‌عنوان مبدأ و هم مقصد انتخاب می‌شود.</div><table><tr><th>عنوان</th><th>ترتیب</th><th>فعال</th><th></th></tr>
+@each(o in places)
+<tr><td><form id="f{{ o.id }}" method="POST" action="/options/{{ o.id }}">{{ csrfField() }}</form><input form="f{{ o.id }}" name="label" value="{{ o.label }}" required></td><td><input form="f{{ o.id }}" name="sort" type="number" value="{{ o.sort }}" style="width:80px"></td>
+<td><input form="f{{ o.id }}" type="checkbox" name="active" style="width:auto" {{ o.active ? 'checked' : '' }}></td>
+<td><div class="acts"><button form="f{{ o.id }}" class="sm">ذخیره</button><form method="POST" action="/options/{{ o.id }}/delete" data-confirm="حذف شود؟">{{ csrfField() }}<button class="sm danger">حذف</button></form></div></td></tr>
+@end
+</table>
+<form method="POST" action="/options"><br>{{ csrfField() }}<input type="hidden" name="list" value="external_place"><div class="g"><div><label>مبدأ یا مقصد جدید</label><input name="label" required></div></div><p><button class="sm">افزودن</button></p></form></div>
+
+<div class="card sc"><h2>روش‌های تقسیم</h2>
+<div class="sub">«گرد کردن به» هر سهم را به مضرب آن عدد (ریال) گرد می‌کند و باقی‌مانده را به بزرگ‌ترین سهم می‌دهد؛ جمع کل همیشه حفظ می‌شود. در روش «وزنی» می‌توانید وزن پیش‌فرض هر نفر را ذخیره کنید (مثلاً ۲ و ۱ و ۱).</div>
+@each(o in methods)
+<form method="POST" action="/options/{{ o.id }}">{{ csrfField() }}<br><div class="g">
+<div><label>عنوان ({{ engineFa(o.extra.engine) }})</label><input name="label" value="{{ o.label }}" required></div>
+<div><label>ترتیب</label><input name="sort" type="number" value="{{ o.sort }}"></div>
+<div><label>گرد کردن به (ریال)</label><input class="money" inputmode="numeric" name="roundTo" value="{{ money(o.extra.roundTo || 1) }}"></div>
+<div><label>فعال</label><input type="checkbox" name="active" style="width:auto" {{ o.active ? 'checked' : '' }}></div></div>
+@if(o.extra.engine == 'weight')
+<details><summary>وزن پیش‌فرض سرمایه‌گذاران</summary><div class="g"><br>
+@each(i in st.investors)
+<div><label>{{ i.name }}</label><input name="w_{{ i.id }}" inputmode="decimal" value="{{ o.extra.weights ? (o.extra.weights[i.id] || '') : '' }}"></div>
+@end
+</div></details>
+@end
+<p><button class="sm">ذخیره</button></p></form>
+@if(!o.builtin)
+<form method="POST" action="/options/{{ o.id }}/delete" data-confirm="حذف شود؟">{{ csrfField() }}<button class="sm danger">حذف «{{ o.label }}»</button></form>
+@end
+@end
+<h2><br>روش تقسیم جدید</h2>
+<form method="POST" action="/options">{{ csrfField() }}<input type="hidden" name="list" value="split_method"><div class="g">
+<div><label>عنوان</label><input name="label" required></div>
+<div><label>مبنا</label><select name="engine">
+@each(e in engines())
+<option value="{{ e.value }}">{{ e.label }}</option>
+@end
+</select></div>
+<div><label>گرد کردن به (ریال)</label><input class="money" inputmode="numeric" name="roundTo" value="1"></div></div>
+<details><summary>وزن پیش‌فرض (فقط برای مبنای «وزنی»)</summary><div class="g"><br>
+@each(i in st.investors)
+<div><label>{{ i.name }}</label><input name="w_{{ i.id }}" inputmode="decimal"></div>
+@end
+</div></details>
+<p><button class="sm">افزودن روش</button></p></form></div>
+
+<div class="card sc"><h2>عنوان نوع‌ها</h2>
+<div class="sub">منطق محاسبه ثابت است (صدور واحد به صندوق اضافه می‌کند و ابطال کم می‌کند)، ولی نام‌هایی که در صفحه‌ها می‌بینید قابل تغییر است.</div><table><tr><th>کلید</th><th>عنوان</th><th></th></tr>
+@each(o in labels)
+<tr><td class="sub"><form id="f{{ o.id }}" method="POST" action="/options/{{ o.id }}">{{ csrfField() }}</form>{{ o.value }}</td><td><input form="f{{ o.id }}" name="label" value="{{ o.label }}" required></td><td><button form="f{{ o.id }}" class="sm">ذخیره</button></td></tr>
+@end
+</table></div>
+@include('partials/foot')

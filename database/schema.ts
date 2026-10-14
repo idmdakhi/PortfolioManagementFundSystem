@@ -108,6 +108,52 @@ export class InvestorSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class MovementSchema extends BaseModel {
+  static $columns = ['batchId', 'createdAt', 'createdBy', 'fromRef', 'id', 'method', 'note', 'occurredOn', 'toRef', 'total'] as const
+  $columns = MovementSchema.$columns
+  @column()
+  declare batchId: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare createdBy: number | null
+  @column()
+  declare fromRef: string
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare method: string
+  @column()
+  declare note: string | null
+  @column()
+  declare occurredOn: string
+  @column()
+  declare toRef: string
+  @column()
+  declare total: bigint | number
+}
+
+export class OptionSchema extends BaseModel {
+  static $columns = ['active', 'builtin', 'extra', 'id', 'label', 'list', 'sort', 'value'] as const
+  $columns = OptionSchema.$columns
+  @column()
+  declare active: boolean
+  @column()
+  declare builtin: boolean
+  @column()
+  declare extra: string | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare label: string
+  @column()
+  declare list: string
+  @column()
+  declare sort: number
+  @column()
+  declare value: string
+}
+
 export class PeriodSnapshotSchema extends BaseModel {
   static $columns = ['beginCost', 'createdAt', 'deposits', 'dividends', 'endJalali', 'excessFee', 'excessProfit', 'fixedProfit', 'fundProfit', 'grossProfit', 'id', 'label', 'marketValue', 'mgmtFee', 'months', 'nav', 'periodId', 'totalCost', 'totalFee', 'totalUnits', 'withdrawals'] as const
   $columns = PeriodSnapshotSchema.$columns

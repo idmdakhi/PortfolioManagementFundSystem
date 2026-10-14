@@ -1,0 +1,15 @@
+@include('partials/head')
+<div class="card"><h2>دانلود پشتیبان (JSON)</h2>
+<div class="sub">همهٔ داده‌های صندوق: دوره‌ها، سرمایه‌گذاران، حساب‌های شخصی، تراکنش‌ها، سود تقسیمی، حوزه‌ها و حرکت‌های آن‌ها. کاربران و گذرواژه‌ها در فایل نیست.</div>
+<p><a class="btn" download href="/backup/export">دانلود فایل پشتیبان</a></p>
+<table><tr><th>جدول</th><th class="num">تعداد ردیف</th></tr>
+@each(t in tables)
+<tr><td>{{ t }}</td><td class="num">{{ fa(counts[t]) }}</td></tr>
+@end
+</table></div>
+<div class="card"><h2>بازیابی از فایل پشتیبان</h2>
+<div class="sub">همهٔ داده‌های فعلی صندوق با محتوای فایل جایگزین می‌شود. پیش از آن، نسخهٔ فعلی خودکار در پوشهٔ <span dir="ltr">tmp/backups</span> روی سرور ذخیره می‌شود. اگر فایل مشکل داشته باشد، هیچ تغییری اعمال نمی‌شود.</div>
+<form method="POST" action="/backup/import" enctype="multipart/form-data" data-confirm="همهٔ داده‌های فعلی با فایل پشتیبان جایگزین شود؟">{{ csrfField() }}
+<br><div class="g"><div><label>فایل پشتیبان (.json)</label><input type="file" name="file" accept=".json,application/json" required></div></div>
+<p><button class="danger">بازیابی</button></p></form></div>
+@include('partials/foot')

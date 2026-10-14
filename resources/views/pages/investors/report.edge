@@ -43,7 +43,7 @@
 <tr><td>{{ jd(d.occurredOn) }}</td><td>سود تقسیمی حساب شخصی{{ d.note ? ' — ' + d.note : '' }}</td><td class="num">{{ fa(d.amount) }}</td></tr>
 @end
 @each(m in areaMoves)
-<tr><td>{{ jd(m.occurredOn) }}</td><td>{{ m.type == 'deposit' ? 'واریز به' : 'برداشت از' }} {{ areaNames.get(m.areaId) }}{{ m.note ? ' — ' + m.note : '' }}</td><td class="num">{{ fa(m.amount) }}</td></tr>
+<tr><td>{{ jd(m.occurredOn) }}</td><td>{{ areaTypeFa(m.type) }} {{ m.type == 'deposit' ? 'به' : 'از' }} {{ areaNames.get(m.areaId) }}{{ m.note ? ' — ' + m.note : '' }}</td><td class="num">{{ fa(m.amount) }}</td></tr>
 @end
 @if(!txs.length && !personalDivs.length && !areaMoves.length)
 <tr><td colspan="3" class="sub">در این دوره گردشی ثبت نشده است.</td></tr>

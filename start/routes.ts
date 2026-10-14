@@ -36,6 +36,15 @@ router
         router.post('transactions/:id', [controllers.Transactions, 'update'])
         router.post('transactions/:id/delete', [controllers.Transactions, 'destroy'])
 
+        router.get('options', [controllers.Options, 'index'])
+        router.post('options', [controllers.Options, 'store'])
+        router.post('options/:id', [controllers.Options, 'update'])
+        router.post('options/:id/delete', [controllers.Options, 'destroy'])
+
+        router.get('backup', [controllers.Backup, 'index'])
+        router.get('backup/export', [controllers.Backup, 'export'])
+        router.post('backup/import', [controllers.Backup, 'import'])
+
         router.post('movements', [controllers.Movements, 'store'])
         router.post('movements/:batch/delete', [controllers.Movements, 'destroy'])
         router.post('areas', [controllers.Areas, 'store'])

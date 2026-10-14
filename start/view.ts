@@ -1,5 +1,6 @@
 import edge from 'edge.js'
 import { faDigits, toJalaliStr } from '#services/jalali'
+import { optionsOf, optLabel, ENGINES } from '#services/options'
 
 const n0 = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 0 })
 const n2 = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 2 })
@@ -13,4 +14,12 @@ edge.global('money', (n: number | bigint | null | undefined) => (n === null || n
 edge.global('jd', (iso: string) => (iso ? faDigits(toJalaliStr(iso)) : ''))
 edge.global('jraw', (iso: string) => (iso ? toJalaliStr(iso) : ''))
 edge.global('cls', (n: number) => (n >= 0 ? 'pos' : 'neg'))
-edge.global('typeFa', (t: string) => (t === 'issue' ? 'صدور' : 'ابطال'))
+edge.global('typeFa', (t: string) => optLabel('label', 'tx.' + t))
+edge.global('divFa', (s: string) => optLabel('label', 'div.' + s))
+edge.global('areaTypeFa', (t: string) => optLabel('label', 'area.' + t))
+edge.global('kindFa', (k: string) => optLabel('area_kind', k))
+edge.global('opts', (list: string) => optionsOf(list))
+edge.global('optAll', (list: string) => optionsOf(list, false))
+edge.global('optLabel', optLabel)
+edge.global('engineFa', (e: string) => ENGINES[e] ?? e)
+edge.global('engines', () => Object.entries(ENGINES).map(([value, label]) => ({ value, label })))

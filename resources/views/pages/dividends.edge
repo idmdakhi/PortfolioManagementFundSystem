@@ -1,13 +1,13 @@
 @include('partials/head')
 <div class="chips">
 <a href="/dividends" class="{{ scope == '' ? 'on' : '' }}">همه</a>
-<a href="/dividends?scope=fund" class="{{ scope == 'fund' ? 'on' : '' }}">صندوق</a>
-<a href="/dividends?scope=personal" class="{{ scope == 'personal' ? 'on' : '' }}">حساب شخصی</a>
+<a href="/dividends?scope=fund" class="{{ scope == 'fund' ? 'on' : '' }}">{{ divFa('fund') }}</a>
+<a href="/dividends?scope=personal" class="{{ scope == 'personal' ? 'on' : '' }}">{{ divFa('personal') }}</a>
 </div>
 @if(auth.user.role == 'admin')
 <div class="card"><h2>ثبت سود تقسیمی</h2>
 <form method="POST" action="/dividends">{{ csrfField() }}<div class="g">
-<div><label>نوع</label><select name="scope"><option value="fund" {{ false ? 'selected' : '' }}>صندوق (بین سرمایه‌گذاران به نسبت واحد تقسیم می‌شود)</option><option value="personal" {{ false ? 'selected' : '' }}>حساب شخصی</option></select></div>
+<div><label>نوع</label><select name="scope"><option value="fund" {{ false ? 'selected' : '' }}>{{ divFa('fund') }} (بین سرمایه‌گذاران به نسبت واحد تقسیم می‌شود)</option><option value="personal" {{ false ? 'selected' : '' }}>{{ divFa('personal') }}</option></select></div>
 <div><label>سرمایه‌گذار (فقط حساب شخصی)</label><select name="investorId"><option value="">—</option>
 @each(i in st.investors)
 <option value="{{ i.id }}" {{ false ? 'selected' : '' }}>{{ i.name }}</option>
@@ -20,7 +20,7 @@
 @end
 <div class="card sc"><table><tr><th>تاریخ</th><th>نوع</th><th>سرمایه‌گذار</th><th class="num">مبلغ</th><th>یادداشت</th><th></th></tr>
 @each(d in list)
-<tr><td>{{ jd(d.occurredOn) }}</td><td>{{ d.scope == 'fund' ? 'صندوق' : 'حساب شخصی' }}</td><td>{{ d.investorId ? names.get(d.investorId) : '—' }}</td><td class="num">{{ fa(d.amount) }}</td><td>{{ d.note || '' }}</td>
+<tr><td>{{ jd(d.occurredOn) }}</td><td>{{ divFa(d.scope) }}</td><td>{{ d.investorId ? names.get(d.investorId) : '—' }}</td><td class="num">{{ fa(d.amount) }}</td><td>{{ d.note || '' }}</td>
 <td>
 @if(auth.user.role == 'admin')
 <div class="acts"><a class="btn sm o" href="/dividends/{{ d.id }}/edit">ویرایش</a>

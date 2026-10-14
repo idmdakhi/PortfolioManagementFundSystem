@@ -74,9 +74,10 @@
     var f = e.target
     if (f.action && new URL(f.action, location.href).origin !== location.origin) return
     e.preventDefault()
-    var data = new URLSearchParams(new FormData(f))
+    var multi = f.enctype === 'multipart/form-data'
+    var data = multi ? new FormData(f) : new URLSearchParams(new FormData(f))
     if ((f.method || 'get').toUpperCase() === 'GET') go(f.action + '?' + data, {}, true)
-    else go(f.action, { method: 'POST', body: data, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }, true)
+    else go(f.action, multi ? { method: 'POST', body: data } : { method: 'POST', body: data, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }, true)
   })
   window.addEventListener('popstate', function () { if (fsOn()) go(location.href, {}, false) })
   document.addEventListener('fullscreenchange', syncFs)

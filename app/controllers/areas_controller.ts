@@ -2,11 +2,12 @@ import type { HttpContext } from '@adonisjs/core/http'
 import vine from '@vinejs/vine'
 import Area from '#models/area'
 import { loadState } from '#services/fund_state'
+import { findOption } from '#services/options'
 import { parseJalali, todayIso, todayJalali } from '#services/jalali'
 
 const areaValidator = vine.create({
   name: vine.string().trim().minLength(1).maxLength(100),
-  kind: vine.enum(['cash', 'property', 'other']),
+  kind: vine.string().trim(),
   notes: vine.string().trim().optional(),
 })
 const valuedValidator = vine.create({ marketValue: vine.number().min(0), valuedOn: vine.string().trim().optional() })
@@ -20,6 +21,10 @@ export default class AreasController {
 
   async store({ request, response, session }: HttpContext) {
     const d = await request.validateUsing(areaValidator)
+    if (!findOption('area_kind', d.kind)?.active) {
+      session.flash('error', 'نوع حوزه معتبر نیست.')
+      return response.redirect('/areas')
+    }
     await Area.create({ name: d.name, kind: d.kind, notes: d.notes ?? null, marketValue: 0 })
     session.flash('ok', 'حوزهٔ سرمایه‌گذاری اضافه شد.')
     return response.redirect('/areas')

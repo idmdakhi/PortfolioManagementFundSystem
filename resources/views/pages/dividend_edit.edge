@@ -1,7 +1,7 @@
 @include('partials/head')
 <div class="card"><h2>ویرایش سود تقسیمی</h2>
 <form method="POST" action="/dividends/{{ d.id }}">{{ csrfField() }}<div class="g">
-<div><label>نوع</label><select name="scope"><option value="fund" {{ d.scope == 'fund' ? 'selected' : '' }}>صندوق (بین سرمایه‌گذاران به نسبت واحد تقسیم می‌شود)</option><option value="personal" {{ d.scope == 'personal' ? 'selected' : '' }}>حساب شخصی</option></select></div>
+<div><label>نوع</label><select name="scope"><option value="fund" {{ d.scope == 'fund' ? 'selected' : '' }}>{{ divFa('fund') }} (بین سرمایه‌گذاران به نسبت واحد تقسیم می‌شود)</option><option value="personal" {{ d.scope == 'personal' ? 'selected' : '' }}>{{ divFa('personal') }}</option></select></div>
 <div><label>سرمایه‌گذار (فقط حساب شخصی)</label><select name="investorId"><option value="">—</option>
 @each(i in st.investors)
 <option value="{{ i.id }}" {{ i.id == d.investorId ? 'selected' : '' }}>{{ i.name }}</option>

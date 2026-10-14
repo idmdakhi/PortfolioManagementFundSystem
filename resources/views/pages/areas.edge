@@ -2,12 +2,16 @@
 @if(auth.user.role == 'admin')
 <div class="card"><h2>افزودن حوزهٔ سرمایه‌گذاری</h2><form method="POST" action="/areas">{{ csrfField() }}<div class="g">
 <div><label>نام (مثلاً زمین بلوار)</label><input name="name" required></div>
-<div><label>نوع</label><select name="kind"><option value="cash">نقدی</option><option value="property">ملک</option><option value="other">سایر</option></select></div>
+<div><label>نوع</label><select name="kind">
+@each(k in opts('area_kind'))
+<option value="{{ k.value }}">{{ k.label }}</option>
+@end
+</select></div>
 <div><label>توضیح</label><input name="notes"></div></div><p><button>افزودن</button></p></form>
 <div class="sub">واریز و برداشت این حوزه‌ها از صفحهٔ «حرکت گروهی» انجام می‌شود.</div></div>
 @end
 @each(a in st.areas)
-<div class="card sc"><h2>{{ a.name }} <span class="badge">{{ a.kind == 'cash' ? 'نقدی' : (a.kind == 'property' ? 'ملک' : 'سایر') }}</span></h2>
+<div class="card sc"><h2>{{ a.name }} <span class="badge">{{ kindFa(a.kind) }}</span></h2>
 <div class="sub">مجموع مانده: {{ fa(a.totalBalance) }} ریال — ارزش روز: {{ a.marketValue ? fa(a.marketValue) + ' ریال (' + jd(a.valuedOn) + ')' : 'ثبت نشده (ارزش = مانده)' }}{{ a.notes ? ' — ' + a.notes : '' }}</div>
 <table><tr><th>سرمایه‌گذار</th><th class="num">واریز</th><th class="num">برداشت</th><th class="num">مانده</th><th class="num">سهم از ارزش</th><th class="num">سود</th></tr>
 @each(r in a.rows)
