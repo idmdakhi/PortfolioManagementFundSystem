@@ -6,6 +6,7 @@ import Movement from '#models/movement'
 import { findOption, optLabel } from '#services/options'
 import { loadState, ledgerOk, areaLedgerOk, type LedgerTx, type AreaMove } from '#services/fund_state'
 import { parseJalali, todayIso, todayJalali } from '#services/jalali'
+import { canEdit, reportOf, NOT_EDITABLE } from '#services/period_guard'
 import { splitAmount, type SplitMode } from '#services/splitter'
 
 /** A place money can come from / go to: the fund, an investment area, or outside the system. */
@@ -34,7 +35,6 @@ export default class MovementsController {
     const refLabel = (ref: string) =>
       ref === 'fund' ? 'صندوق' : ref.startsWith('area:') ? (areaNames.get(Number(ref.slice(5))) ?? ref) : ref.startsWith('ext:') ? optLabel('external_place', ref.slice(4)) : ref
     const groups = new Map<string, Group>()
-    const open = st.current?.period
     const get = (id: string, date: string, note: string | null) => {
       if (!groups.has(id)) {
         const m = metas.get(id)
@@ -50,7 +50,7 @@ export default class MovementsController {
       const g = get(t.batchId, t.occurredOn, t.note)
       g.people.add(t.investorId)
       g.fund += t.type === 'issue' ? t.amount : -t.amount
-      if (!open || t.occurredOn < open.startOn) g.locked = true
+      if (!canEdit(st, t.occurredOn)) g.locked = true
     }
     for (const e of st.areaEntries) {
       const g = get(e.batchId, e.occurredOn, e.note)
@@ -105,11 +105,9 @@ export default class MovementsController {
     if ('error' in split) return back(split.error)
 
     const usesFund = from.kind === 'fund' || to.kind === 'fund'
-    const open = st.current?.period
-    const nav = st.current?.summary.nav ?? 0
+    const nav = reportOf(st, date)?.summary.nav ?? 0
     if (usesFund) {
-      if (!open || open.status !== 'open') return back('دورهٔ مالی بازی وجود ندارد.')
-      if (date < open.startOn || date > open.endOn) return back('تاریخ باید داخل دورهٔ مالی باز باشد.')
+      if (!canEdit(st, date)) return back(NOT_EDITABLE)
       if (!(nav > 0)) return back('NAV معتبر نیست.')
     }
 
@@ -119,7 +117,7 @@ export default class MovementsController {
     const txs: LedgerTx[] = usesFund
       ? ids.map((id, i) => ({
           id: 1e9 + i, investorId: id, type: txType, amount: split.amounts[i], nav,
-          units: split.amounts[i] / nav, occurredOn: date, note, batchId,
+          units: split.amounts[i] / nav, occurredOn: date, note, batchId, kind: 'normal' as const,
         }))
       : []
     const moves: AreaMove[] = []
@@ -168,9 +166,8 @@ export default class MovementsController {
     const gTx = st.txs.filter((t) => t.batchId === id)
     const gEn = st.areaEntries.filter((e) => e.batchId === id)
     if (!gTx.length && !gEn.length) return fail('گروه پیدا نشد.')
-    const open = st.current?.period
-    if (gTx.length && (!open || open.status !== 'open' || gTx.some((t) => t.occurredOn < open.startOn))) {
-      return fail('این گروه در دورهٔ بسته است و قابل حذف نیست.')
+    if (gTx.some((t) => !canEdit(st, t.occurredOn))) {
+      return fail('این گروه در دورهٔ بسته است. برای حذف، «ویرایش دوره‌های بسته» را در تنظیمات روشن کنید.')
     }
     if (!ledgerOk(st, st.txs.filter((t) => t.batchId !== id))) return fail('با حذف این گروه، واحدهای یک سرمایه‌گذار منفی می‌شود.')
     if (!areaLedgerOk(st.areaEntries.filter((e) => e.batchId !== id))) return fail('با حذف این گروه، موجودی یک حوزه منفی می‌شود.')

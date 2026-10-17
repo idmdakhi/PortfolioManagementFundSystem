@@ -3,6 +3,7 @@ import vine from '@vinejs/vine'
 import Area from '#models/area'
 import { loadState } from '#services/fund_state'
 import { findOption } from '#services/options'
+import Movement from '#models/movement'
 import { parseJalali, todayIso, todayJalali } from '#services/jalali'
 
 const areaValidator = vine.create({
@@ -42,6 +43,48 @@ export default class AreasController {
       await area.save()
       session.flash('ok', 'ارزش حوزه به‌روز شد.')
     }
+    return response.redirect('/areas')
+  }
+
+  async edit({ view, params, response, session }: HttpContext) {
+    const area = await Area.find(Number(params.id))
+    if (!area) {
+      session.flash('error', 'حوزه پیدا نشد.')
+      return response.redirect('/areas')
+    }
+    return view.render('pages/area_edit', { nav: 'ar', area })
+  }
+
+  async update({ request, params, response, session }: HttpContext) {
+    const d = await request.validateUsing(areaValidator)
+    const area = await Area.find(Number(params.id))
+    if (!area) {
+      session.flash('error', 'حوزه پیدا نشد.')
+      return response.redirect('/areas')
+    }
+    if (d.kind !== area.kind && !findOption('area_kind', d.kind)?.active) {
+      session.flash('error', 'نوع حوزه معتبر نیست.')
+      return response.redirect(`/areas/${area.id}/edit`)
+    }
+    area.merge({ name: d.name, kind: d.kind, notes: d.notes ?? null })
+    await area.save()
+    session.flash('ok', 'حوزه ویرایش شد.')
+    return response.redirect('/areas')
+  }
+
+  async destroy({ params, response, session }: HttpContext) {
+    const area = await Area.find(Number(params.id))
+    const fail = (m: string) => {
+      session.flash('error', m)
+      return response.redirect(`/areas/${params.id}/edit`)
+    }
+    if (!area) return fail('حوزه پیدا نشد.')
+    const st = await loadState()
+    if (st.areaEntries.some((e) => e.areaId === area.id)) return fail('این حوزه واریز یا برداشت دارد. ابتدا گروه‌های مربوط را در «حرکت گروهی» حذف کنید.')
+    const ref = `area:${area.id}`
+    if (await Movement.query().where('from_ref', ref).orWhere('to_ref', ref).first()) return fail('این حوزه در تاریخچهٔ حرکت‌ها استفاده شده است.')
+    await area.delete()
+    session.flash('ok', 'حوزه حذف شد.')
     return response.redirect('/areas')
   }
 }

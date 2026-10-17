@@ -1,0 +1,8 @@
+@include('partials/head')
+<div class="card"><h2>ویرایش ارزش‌گذاری</h2>
+<form method="POST" action="/valuations/{{ v.id }}">{{ csrfField() }}<div class="g">
+<div><label>ارزش روز کل صندوق (ریال)</label><input class="money" inputmode="numeric" name="marketValue" value="{{ money(v.marketValue) }}" required></div>
+<div><label>تاریخ شمسی</label><input name="occurredOn" dir="ltr" value="{{ jraw(v.occurredOn) }}"></div>
+<div><label>یادداشت</label><input name="note" value="{{ v.note || '' }}"></div></div>
+<p><button>ذخیره</button> <a href="/valuations">بازگشت</a></p></form></div>
+@include('partials/foot')

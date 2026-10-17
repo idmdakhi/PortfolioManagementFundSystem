@@ -1,0 +1,14 @@
+@include('partials/head')
+<div class="card"><h2>ویرایش حوزه</h2>
+<form method="POST" action="/areas/{{ area.id }}">{{ csrfField() }}<div class="g">
+<div><label>نام *</label><input name="name" value="{{ area.name }}" required></div>
+<div><label>نوع</label><select name="kind">
+@each(k in optAll('area_kind'))
+<option value="{{ k.value }}" {{ k.value == area.kind ? 'selected' : '' }}>{{ k.label }}</option>
+@end
+</select></div>
+<div><label>توضیح</label><input name="notes" value="{{ area.notes || '' }}"></div></div>
+<p><button>ذخیره</button> <a href="/areas">بازگشت</a></p></form>
+<form method="POST" action="/areas/{{ area.id }}/delete" data-confirm="این حوزه حذف شود؟">{{ csrfField() }}<button class="danger sm">حذف حوزه</button>
+<span class="sub"> فقط وقتی هیچ واریز یا برداشتی ندارد حذف می‌شود.</span></form></div>
+@include('partials/foot')

@@ -1,6 +1,8 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Investor from '#models/investor'
 import PersonalAccount from '#models/personal_account'
+import db from '@adonisjs/lucid/services/db'
+import { managerInvestorId } from '#services/options'
 import { loadState } from '#services/fund_state'
 import { faDigits, todayJalali } from '#services/jalali'
 import { investorValidator, personalValidator } from '#validators/fund'
@@ -82,5 +84,58 @@ export default class InvestorsController {
     await PersonalAccount.updateOrCreate({ investorId: Number(params.id), periodId }, d)
     session.flash('ok', 'حساب شخصی ذخیره شد.')
     return response.redirect(`/investors/${params.id}/personal`)
+  }
+
+  async edit({ view, params, response, session }: HttpContext) {
+    const inv = await Investor.find(Number(params.id))
+    if (!inv) {
+      session.flash('error', 'سرمایه‌گذار پیدا نشد.')
+      return response.redirect('/investors')
+    }
+    return view.render('pages/investors/edit', { nav: 'inv', inv })
+  }
+
+  async update({ request, params, response, session }: HttpContext) {
+    const d = await request.validateUsing(investorValidator)
+    const inv = await Investor.find(Number(params.id))
+    if (!inv) {
+      session.flash('error', 'سرمایه‌گذار پیدا نشد.')
+      return response.redirect('/investors')
+    }
+    inv.merge({ name: d.name, notes: d.notes ?? null, openingUnits: d.openingUnits ?? 0, openingCost: d.openingCost ?? 0 })
+    await inv.save()
+    session.flash('ok', 'سرمایه‌گذار ویرایش شد.')
+    return response.redirect('/investors')
+  }
+
+  /** Deletes an investor only when nothing else refers to him. */
+  async destroy({ params, response, session }: HttpContext) {
+    const id = Number(params.id)
+    const st = await loadState()
+    const fail = (m: string) => {
+      session.flash('error', m)
+      return response.redirect(`/investors/${id}/edit`)
+    }
+    const inv = st.investors.find((i) => i.id === id)
+    if (!inv) return fail('سرمایه‌گذار پیدا نشد.')
+    const reasons: string[] = []
+    if (inv.openingUnits || inv.openingCost) reasons.push('واحد یا بهای اولیه دارد')
+    if (st.txs.some((t) => t.investorId === id)) reasons.push('تراکنش دارد')
+    if (st.divs.some((d) => d.investorId === id)) reasons.push('سود تقسیمی شخصی دارد')
+    if (st.fees.some((f) => f.investorId === id)) reasons.push('کارمزد ثبت‌شده دارد')
+    if (st.areaEntries.some((e) => e.investorId === id)) reasons.push('در حوزه‌ها سرمایه دارد')
+    if (managerInvestorId() === id) reasons.push('سبدگردان انتخاب‌شده است')
+    const hasPersonal = st.reports.some((r) => {
+      const p = r.rows.find((x) => x.id === id)?.personalRaw
+      return !!p && !!(p.beginValue || p.deposits || p.withdrawals || p.marketValue)
+    })
+    if (hasPersonal) reasons.push('حساب شخصی دارای مقدار دارد')
+    if (reasons.length) return fail(`حذف ممکن نیست؛ این سرمایه‌گذار: ${reasons.join('، ')}.`)
+    await db.transaction(async (trx) => {
+      await trx.from('personal_accounts').where('investor_id', id).delete()
+      await trx.from('investors').where('id', id).delete()
+    })
+    session.flash('ok', 'سرمایه‌گذار حذف شد.')
+    return response.redirect('/investors')
   }
 }

@@ -17,9 +17,20 @@
 </tr>
 @end
 </table></div>
-<div class="card sc"><h2>سوابق قبل از سیستم</h2><table><tr><th>سال</th><th class="num">بازدهی (٪)</th><th class="num">کارمزد سبدگردان</th></tr>
+<div class="card sc"><h2>سوابق قبل از سیستم</h2><table><tr><th>سال</th><th class="num">بازدهی (٪)</th><th class="num">کارمزد سبدگردان</th><th></th></tr>
 @each(h in st.history)
-<tr><td>{{ h.label }}</td><td class="num pos">{{ fa2(h.returnPct) }}</td><td class="num">{{ fa(h.fee) }}</td></tr>
+@if(auth.user.role == 'admin')
+<tr><td><form id="h{{ h.id }}" method="POST" action="/history/{{ h.id }}">{{ csrfField() }}</form><input form="h{{ h.id }}" name="label" value="{{ h.label }}" style="width:90px"></td>
+<td class="num"><input form="h{{ h.id }}" name="returnPct" inputmode="decimal" value="{{ h.returnPct }}" style="width:110px"></td>
+<td class="num"><input form="h{{ h.id }}" class="money" inputmode="numeric" name="fee" value="{{ money(h.fee) }}" style="width:170px"></td>
+<td><div class="acts"><button form="h{{ h.id }}" class="sm">ذخیره</button><form method="POST" action="/history/{{ h.id }}/delete" data-confirm="حذف شود؟">{{ csrfField() }}<button class="sm danger">حذف</button></form></div></td></tr>
+@else
+<tr><td>{{ h.label }}</td><td class="num pos">{{ fa2(h.returnPct) }}</td><td class="num">{{ fa(h.fee) }}</td><td></td></tr>
 @end
-</table></div>
+@end
+</table>
+@if(auth.user.role == 'admin')
+<form method="POST" action="/history"><br>{{ csrfField() }}<div class="g"><div><label>سال</label><input name="label" required></div><div><label>بازدهی (٪)</label><input name="returnPct" inputmode="decimal" required></div><div><label>کارمزد (ریال)</label><input class="money" inputmode="numeric" name="fee" value="0"></div></div><p><button class="sm">افزودن سال</button> <a href="/periods/manage">مدیریت دوره‌ها</a></p></form>
+@end
+</div>
 @include('partials/foot')

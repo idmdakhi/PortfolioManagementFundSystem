@@ -12,6 +12,9 @@
 @end
 @each(a in st.areas)
 <div class="card sc"><h2>{{ a.name }} <span class="badge">{{ kindFa(a.kind) }}</span></h2>
+@if(auth.user.role == 'admin')
+<a class="btn sm o" href="/areas/{{ a.id }}/edit">ویرایش / حذف</a>
+@end
 <div class="sub">مجموع مانده: {{ fa(a.totalBalance) }} ریال — ارزش روز: {{ a.marketValue ? fa(a.marketValue) + ' ریال (' + jd(a.valuedOn) + ')' : 'ثبت نشده (ارزش = مانده)' }}{{ a.notes ? ' — ' + a.notes : '' }}</div>
 <table><tr><th>سرمایه‌گذار</th><th class="num">واریز</th><th class="num">برداشت</th><th class="num">مانده</th><th class="num">سهم از ارزش</th><th class="num">سود</th></tr>
 @each(r in a.rows)

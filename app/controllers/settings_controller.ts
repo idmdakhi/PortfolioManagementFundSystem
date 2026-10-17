@@ -1,13 +1,16 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { loadState } from '#services/fund_state'
-import { parseJalali, todayIso, todayJalali } from '#services/jalali'
-import { settingsValidator, valuationValidator } from '#validators/fund'
-import { exportBackup, importBackup, type BackupPayload } from '#services/backup'
+import { parseJalali, todayJalali } from '#services/jalali'
+import { settingsValidator } from '#validators/fund'
+import Option from '#models/option'
+import Valuation from '#models/valuation'
+import { invalidateOptions, bankRate, closedEditsAllowed } from '#services/options'
+import { syncLegacy, ensureLedger } from '#controllers/valuations_controller'
 
 export default class SettingsController {
   async edit({ view }: HttpContext) {
     const st = await loadState()
-    return view.render('pages/settings', { nav: 'set', st, rep: st.current, today: todayJalali() })
+    return view.render('pages/settings', { nav: 'set', st, rep: st.current, today: todayJalali(), bankRate: bankRate(), closedEdits: closedEditsAllowed() })
   }
 
   async update({ request, response, session }: HttpContext) {
@@ -20,61 +23,57 @@ export default class SettingsController {
     } else if (!startOn || !endOn || startOn > endOn) {
       session.flash('error', 'تاریخ شروع و پایان شمسی معتبر نیست.')
     } else {
+      await ensureLedger(current.period)
+      const oldStart = current.period.startOn
       current.period.merge({ ...d, startOn, endOn })
       await current.period.save()
+      // keep the period's opening entry in the valuation ledger in line with the edited begin value / start date
+      const open = await Valuation.query().where('kind', 'open').where('occurred_on', oldStart).first()
+      if (open) {
+        open.occurredOn = startOn
+        open.marketValue = Math.round(d.beginMarket)
+        await open.save()
+      } else {
+        await Valuation.create({ occurredOn: startOn, marketValue: Math.round(d.beginMarket), kind: 'open', note: 'ارزش ابتدای دوره' })
+      }
+      await syncLegacy(current.period)
       session.flash('ok', 'تنظیمات ذخیره شد.')
     }
     return response.redirect('/settings')
   }
 
-  /** Sets the market value of the whole portfolio as of a date (transactions up to that day are included). */
-  async valuation({ request, response, session }: HttpContext) {
-    const d = await request.validateUsing(valuationValidator)
+  /** Bank interest = fixed rate for customers and the fund. Applies to the open period and to new periods. */
+  async bankRate({ request, response, session }: HttpContext) {
+    const rate = Number(request.input('rate'))
     const { current } = await loadState()
-    const on = d.valuationOn ? parseJalali(d.valuationOn) : todayIso()
-    if (!current || current.period.status !== 'open') {
-      session.flash('error', 'دورهٔ بازی وجود ندارد.')
-    } else if (!on) {
-      session.flash('error', 'تاریخ شمسی معتبر نیست.')
-    } else {
-      current.period.marketValueBase = Math.round(d.marketValue)
-      current.period.valuationOn = on
-      await current.period.save()
-      session.flash('ok', 'ارزش روز سبد به‌روز شد.')
+    if (!(rate >= 0 && rate <= 1000)) {
+      session.flash('error', 'درصد معتبر نیست.')
+      return response.redirect('/settings')
     }
+    const opt =
+      (await Option.query().where('list', 'setting').where('value', 'bank_rate').first()) ??
+      new Option().merge({ list: 'setting', value: 'bank_rate', label: 'سود بانکی (سود ثابت مشتری و صندوق)، درصد سالانه', active: true, builtin: true, sort: 98 })
+    opt.extra = JSON.stringify({ rate })
+    await opt.save()
+    invalidateOptions()
+    if (current && current.period.status === 'open') {
+      current.period.fixedRate = rate
+      await current.period.save()
+    }
+    session.flash('ok', 'سود بانکی (سود ثابت مشتری و صندوق) به‌روز شد.')
     return response.redirect('/settings')
   }
 
-  /** Download a full JSON backup of all data. */
-  async backup({ response }: HttpContext) {
-    const data = await exportBackup()
-    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')
-    const filename = `fund-backup-${stamp}.json`
-    response.header('Content-Type', 'application/json; charset=utf-8')
-    response.header('Content-Disposition', `attachment; filename="${filename}"`)
-    return response.send(JSON.stringify(data, null, 2))
-  }
-
-  /** Restore from an uploaded JSON backup (replaces all data). */
-  async restore({ request, response, session }: HttpContext) {
-    const file = request.file('backup', {
-      size: '50mb',
-      extnames: ['json'],
-    })
-    if (!file || !file.isValid) {
-      session.flash('error', 'فایل JSON معتبر انتخاب کنید.')
-      return response.redirect('/settings')
-    }
-    try {
-      const raw = await file.toBuffer()
-      const payload = JSON.parse(raw.toString('utf8')) as BackupPayload
-      await importBackup(payload)
-      session.flash('ok', 'پشتیبان با موفقیت بازیابی شد.')
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : 'خطا در بازیابی پشتیبان'
-      session.flash('error', msg)
-    }
+  /** Admin switch: allow creating/editing/deleting data that belongs to closed periods. */
+  async closedEdits({ request, response, session }: HttpContext) {
+    const on = request.input('on') === 'on'
+    const opt =
+      (await Option.query().where('list', 'setting').where('value', 'allow_closed_edit').first()) ??
+      new Option().merge({ list: 'setting', value: 'allow_closed_edit', label: 'اجازهٔ ویرایش دوره‌های بسته', active: true, builtin: true, sort: 97 })
+    opt.extra = JSON.stringify({ on })
+    await opt.save()
+    invalidateOptions()
+    session.flash('ok', on ? 'ویرایش دوره‌های بسته روشن شد.' : 'ویرایش دوره‌های بسته خاموش شد.')
     return response.redirect('/settings')
   }
 }
-

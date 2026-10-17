@@ -5,7 +5,7 @@ import { latinDigits } from '#services/jalali'
 const NUMERIC = new Set([
   'amount', 'nav', 'marketValue', 'beginValue', 'deposits', 'withdrawals', 'openingUnits', 'openingCost',
   'beginMarket', 'openingDeposits', 'openingWithdrawals', 'discount', 'months', 'feeCap',
-  'fixedRate', 'mgmtRate', 'excessRate', 'mgmtRate2', 'excessRate2', 'investorId', 'periodId', 'total', 'roundTo', 'sort',
+  'fixedRate', 'mgmtRate', 'excessRate', 'mgmtRate2', 'excessRate2', 'investorId', 'periodId', 'total', 'roundTo', 'sort', 'returnPct', 'fee', 'closeValue', 'amount',
 ])
 const DATES = new Set(['occurredOn', 'startJalali', 'endJalali', 'valuationOn', 'valuedOn'])
 

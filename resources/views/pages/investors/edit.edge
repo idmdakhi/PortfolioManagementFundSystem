@@ -1,0 +1,12 @@
+@include('partials/head')
+<div class="card"><h2>ویرایش سرمایه‌گذار</h2>
+<form method="POST" action="/investors/{{ inv.id }}">{{ csrfField() }}<div class="g">
+<div><label>نام *</label><input name="name" value="{{ inv.name }}" required></div>
+<div><label>توضیح</label><input name="notes" value="{{ inv.notes || '' }}"></div>
+<div><label>واحد اولیه (پیش از اولین تراکنش)</label><input class="money" inputmode="decimal" name="openingUnits" value="{{ money(inv.openingUnits) }}"></div>
+<div><label>بهای تمام‌شدهٔ اولیه (ریال)</label><input class="money" inputmode="numeric" name="openingCost" value="{{ money(inv.openingCost) }}"></div></div>
+<div class="sub">تغییر واحد یا بهای اولیه روی همهٔ دوره‌ها اثر می‌گذارد.</div>
+<p><button>ذخیره</button> <a href="/investors">بازگشت</a></p></form>
+<form method="POST" action="/investors/{{ inv.id }}/delete" data-confirm="این سرمایه‌گذار حذف شود؟">{{ csrfField() }}<button class="danger sm">حذف سرمایه‌گذار</button>
+<span class="sub"> فقط وقتی هیچ تراکنش، سود، کارمزد یا حسابی به او وصل نیست حذف می‌شود.</span></form></div>
+@include('partials/foot')

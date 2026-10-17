@@ -19,6 +19,8 @@ export type ScannedRoutes = {
     'transactions.index': { paramsTuple?: []; params?: {} }
     'dividends.index': { paramsTuple?: []; params?: {} }
     'formulas.show': { paramsTuple?: []; params?: {} }
+    'fees.index': { paramsTuple?: []; params?: {} }
+    'valuations.index': { paramsTuple?: []; params?: {} }
     'investors.store': { paramsTuple?: []; params?: {} }
     'investors.personal': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'transactions.store': { paramsTuple?: []; params?: {} }
@@ -32,6 +34,29 @@ export type ScannedRoutes = {
     'backup.index': { paramsTuple?: []; params?: {} }
     'backup.export': { paramsTuple?: []; params?: {} }
     'backup.import': { paramsTuple?: []; params?: {} }
+    'periods.manage': { paramsTuple?: []; params?: {} }
+    'periods.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'periods.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'periods.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'periods.carry': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'history.store': { paramsTuple?: []; params?: {} }
+    'history.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'history.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'investors.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'investors.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'investors.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'areas.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'areas.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'areas.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'valuations.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'valuations.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'settings.closed_edits': { paramsTuple?: []; params?: {} }
+    'fees.store': { paramsTuple?: []; params?: {} }
+    'fees.transfer': { paramsTuple?: []; params?: {} }
+    'fees.manager': { paramsTuple?: []; params?: {} }
+    'fees.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'fees.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'fees.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'movements.store': { paramsTuple?: []; params?: {} }
     'movements.destroy': { paramsTuple: [ParamValue]; params: {'batch': ParamValue} }
     'areas.store': { paramsTuple?: []; params?: {} }
@@ -42,9 +67,9 @@ export type ScannedRoutes = {
     'dividends.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'settings.edit': { paramsTuple?: []; params?: {} }
     'settings.update': { paramsTuple?: []; params?: {} }
-    'settings.valuation': { paramsTuple?: []; params?: {} }
-    'settings.backup': { paramsTuple?: []; params?: {} }
-    'settings.restore': { paramsTuple?: []; params?: {} }
+    'settings.bank_rate': { paramsTuple?: []; params?: {} }
+    'valuations.store': { paramsTuple?: []; params?: {} }
+    'valuations.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'periods.close': { paramsTuple?: []; params?: {} }
   }
   GET: {
@@ -61,13 +86,20 @@ export type ScannedRoutes = {
     'transactions.index': { paramsTuple?: []; params?: {} }
     'dividends.index': { paramsTuple?: []; params?: {} }
     'formulas.show': { paramsTuple?: []; params?: {} }
+    'fees.index': { paramsTuple?: []; params?: {} }
+    'valuations.index': { paramsTuple?: []; params?: {} }
     'transactions.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'options.index': { paramsTuple?: []; params?: {} }
     'backup.index': { paramsTuple?: []; params?: {} }
     'backup.export': { paramsTuple?: []; params?: {} }
+    'periods.manage': { paramsTuple?: []; params?: {} }
+    'periods.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'investors.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'areas.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'valuations.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'fees.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'dividends.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'settings.edit': { paramsTuple?: []; params?: {} }
-    'settings.backup': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
     'auth.show': { paramsTuple?: []; params?: {} }
@@ -83,13 +115,20 @@ export type ScannedRoutes = {
     'transactions.index': { paramsTuple?: []; params?: {} }
     'dividends.index': { paramsTuple?: []; params?: {} }
     'formulas.show': { paramsTuple?: []; params?: {} }
+    'fees.index': { paramsTuple?: []; params?: {} }
+    'valuations.index': { paramsTuple?: []; params?: {} }
     'transactions.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'options.index': { paramsTuple?: []; params?: {} }
     'backup.index': { paramsTuple?: []; params?: {} }
     'backup.export': { paramsTuple?: []; params?: {} }
+    'periods.manage': { paramsTuple?: []; params?: {} }
+    'periods.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'investors.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'areas.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'valuations.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'fees.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'dividends.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'settings.edit': { paramsTuple?: []; params?: {} }
-    'settings.backup': { paramsTuple?: []; params?: {} }
   }
   POST: {
     'auth.login': { paramsTuple?: []; params?: {} }
@@ -103,6 +142,23 @@ export type ScannedRoutes = {
     'options.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'options.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'backup.import': { paramsTuple?: []; params?: {} }
+    'periods.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'periods.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'periods.carry': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'history.store': { paramsTuple?: []; params?: {} }
+    'history.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'history.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'investors.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'investors.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'areas.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'areas.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'valuations.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'settings.closed_edits': { paramsTuple?: []; params?: {} }
+    'fees.store': { paramsTuple?: []; params?: {} }
+    'fees.transfer': { paramsTuple?: []; params?: {} }
+    'fees.manager': { paramsTuple?: []; params?: {} }
+    'fees.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'fees.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'movements.store': { paramsTuple?: []; params?: {} }
     'movements.destroy': { paramsTuple: [ParamValue]; params: {'batch': ParamValue} }
     'areas.store': { paramsTuple?: []; params?: {} }
@@ -111,8 +167,9 @@ export type ScannedRoutes = {
     'dividends.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'dividends.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'settings.update': { paramsTuple?: []; params?: {} }
-    'settings.valuation': { paramsTuple?: []; params?: {} }
-    'settings.restore': { paramsTuple?: []; params?: {} }
+    'settings.bank_rate': { paramsTuple?: []; params?: {} }
+    'valuations.store': { paramsTuple?: []; params?: {} }
+    'valuations.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'periods.close': { paramsTuple?: []; params?: {} }
   }
 }

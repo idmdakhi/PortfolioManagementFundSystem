@@ -1,0 +1,20 @@
+@include('partials/head')
+<div class="card sc"><h2>مدیریت دوره‌های مالی</h2>
+<table><tr><th>دوره</th><th>وضعیت</th><th>شروع</th><th>پایان</th><th class="num">ارزش ابتدا</th><th class="num">آخرین ارزش / پایانی</th><th></th></tr>
+@each(x in rows)
+<tr><td>{{ x.r.period.label }}</td><td><span class="badge {{ x.r.period.status == 'open' ? '' : 'cl' }}">{{ x.r.period.status == 'open' ? 'باز' : 'بسته' }}</span></td>
+<td>{{ jd(x.r.period.startOn) }}</td><td>{{ jd(x.r.period.endOn) }}</td><td class="num">{{ fa(x.r.valuation.open) }}</td><td class="num">{{ fa(x.r.valuation.latest) }}</td>
+<td><div class="acts"><a class="btn sm o" href="/periods/{{ x.r.period.id }}/edit">ویرایش</a>
+@if(x.hasNext)
+<form method="POST" action="/periods/{{ x.r.period.id }}/carry" data-confirm="ارزش ابتدای دورهٔ بعد از روی این دوره دوباره محاسبه شود؟">{{ csrfField() }}<button class="sm o">به‌روزرسانی ارزش ابتدای دورهٔ بعد</button></form>
+@end
+@if(x.reasons.length)
+<span class="sub">حذف ممکن نیست: {{ x.reasons.join('، ') }}</span>
+@else
+<form method="POST" action="/periods/{{ x.r.period.id }}/delete" data-confirm="این دوره حذف شود؟">{{ csrfField() }}<button class="sm danger">حذف</button></form>
+@end
+</div></td></tr>
+@end
+</table>
+<div class="sub">با ویرایش دورهٔ بسته، ارزش ابتدای دورهٔ بعد خودکار تغییر نمی‌کند؛ پس از ویرایش، «به‌روزرسانی ارزش ابتدای دورهٔ بعد» را بزنید. برای ویرایش تراکنش‌ها و سایر داده‌های دوره‌های بسته، «ویرایش دوره‌های بسته» را در تنظیمات روشن کنید.</div></div>
+@include('partials/foot')

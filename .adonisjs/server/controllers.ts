@@ -9,7 +9,9 @@ export const controllers = {
   Backup: () => import('#controllers/backup_controller'),
   Dashboard: () => import('#controllers/dashboard_controller'),
   Dividends: () => import('#controllers/dividends_controller'),
+  Fees: () => import('#controllers/fees_controller'),
   Formulas: () => import('#controllers/formulas_controller'),
+  History: () => import('#controllers/history_controller'),
   Investors: () => import('#controllers/investors_controller'),
   Movements: () => import('#controllers/movements_controller'),
   Options: () => import('#controllers/options_controller'),
@@ -17,4 +19,5 @@ export const controllers = {
   Personal: () => import('#controllers/personal_controller'),
   Settings: () => import('#controllers/settings_controller'),
   Transactions: () => import('#controllers/transactions_controller'),
+  Valuations: () => import('#controllers/valuations_controller'),
 }

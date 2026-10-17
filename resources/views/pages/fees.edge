@@ -1,0 +1,78 @@
+@include('partials/head')
+<div class="card sc"><h2>کارمزد صندوق به تفکیک دوره</h2>
+<table><tr><th>دوره</th><th class="num">کارمزد محاسبه‌شده</th><th class="num">پرداخت نقدی</th><th class="num">صدور واحد</th><th class="num">ثبت سابقه / تسویه</th><th class="num">جمع دریافتی</th><th class="num">مانده</th></tr>
+@each(r in st.reports)
+<tr><td>{{ r.period.label }} <span class="badge {{ r.period.status == 'open' ? '' : 'cl' }}">{{ r.period.status == 'open' ? 'باز' : 'بسته' }}</span></td>
+<td class="num">{{ fa(r.fees.accrued) }}</td><td class="num">{{ fa(r.fees.cash) }}</td><td class="num">{{ fa(r.fees.units) }}</td><td class="num">{{ fa(r.fees.recorded) }}</td><td class="num">{{ fa(r.fees.received) }}</td>
+<td class="num">{{ r.period.status == 'open' ? fa(r.fees.remaining) : '—' }}</td></tr>
+@end
+</table>
+<div class="sub">«مانده» فقط برای دورهٔ باز نشان داده می‌شود؛ مانده هر دوره هنگام بستن دوره تسویه‌شده حساب می‌شود.</div></div>
+
+@if(auth.user.role == 'admin' && st.current && st.current.period.status == 'open')
+<div class="card"><h2>انتقال کارمزد صندوق به سبدگردان با صدور واحد</h2>
+<div class="sub">سبدگردان: <b>{{ managerName }}</b> — مانده کارمزد دورهٔ {{ st.current.period.label }}: <b>{{ fa(st.current.summary.feeRemaining) }}</b> ریال — NAV فعلی: <b>{{ fa2(st.current.summary.nav) }}</b>.
+با این کار کارمزد به واحد صندوق تبدیل می‌شود و پولی از صندوق خارج نمی‌شود؛ NAV تغییر نمی‌کند.</div>
+<form method="POST" action="/fees/transfer">{{ csrfField() }}<br><div class="g">
+<div><label>مبلغ کارمزد (ریال)</label><input class="money" inputmode="numeric" name="amount" value="{{ money(st.current.summary.feeRemaining > 0 ? st.current.summary.feeRemaining : 0) }}" required></div>
+<div><label>تاریخ شمسی</label><input name="occurredOn" dir="ltr" value="{{ today }}"></div>
+<div><label>NAV (خالی = NAV فعلی)</label><input class="money" inputmode="decimal" name="nav"></div>
+<div><label>یادداشت</label><input name="note"></div></div>
+<p><button>صدور واحد برای سبدگردان</button></p></form>
+<form method="POST" action="/fees/manager"><br>{{ csrfField() }}<div class="g">
+<div><label>سبدگردان (دریافت‌کنندهٔ واحد کارمزد)</label><select name="investorId">
+@each(i in st.investors)
+<option value="{{ i.id }}" {{ i.id == managerId ? 'selected' : '' }}>{{ i.name }}</option>
+@end
+</select></div></div><p><button class="sm o">ذخیرهٔ سبدگردان</button></p></form></div>
+@end
+
+@if(auth.user.role == 'admin')
+<div class="card"><h2>ثبت کارمزد دریافتی</h2>
+<div class="sub">«ثبت سابقه» فقط یک یادداشت حسابداری است و محاسبات را تغییر نمی‌دهد (مناسب کارمزد دوره‌های گذشته و حساب‌های شخصی). «پرداخت نقدی» فقط برای دورهٔ باز و کارمزد صندوق است: از ارزش صندوق و مانده کارمزد کم می‌شود.</div>
+<form method="POST" action="/fees"><br>{{ csrfField() }}<div class="g">
+<div><label>نوع</label><select name="scope"><option value="fund">کارمزد صندوق</option><option value="personal">کارمزد حساب شخصی</option></select></div>
+<div><label>سرمایه‌گذار (فقط حساب شخصی)</label><select name="investorId"><option value="">—</option>
+@each(i in st.investors)
+<option value="{{ i.id }}">{{ i.name }}</option>
+@end
+</select></div>
+<div><label>روش (برای کارمزد صندوق)</label><select name="method"><option value="record">ثبت سابقه</option><option value="cash">پرداخت نقدی از صندوق</option></select></div>
+<div><label>مبلغ (ریال)</label><input class="money" inputmode="numeric" name="amount" required></div>
+<div><label>تاریخ شمسی</label><input name="occurredOn" dir="ltr" value="{{ today }}"></div>
+<div><label>یادداشت</label><input name="note"></div></div>
+<p><button>ثبت</button></p></form></div>
+@end
+
+<div class="chips">
+@each(r in st.reports)
+<a href="/fees?p={{ r.period.id }}" class="{{ r.period.id == rep.period.id ? 'on' : '' }}">{{ r.period.label }}</a>
+@end
+</div>
+<div class="card sc"><h2>کارمزد حساب‌های شخصی — دورهٔ {{ rep.period.label }}</h2>
+<table><tr><th>نام</th><th class="num">کارمزد محاسبه‌شده</th><th class="num">دریافت‌شده</th><th class="num">مانده</th></tr>
+@each(r in rep.rows)
+@if(r.personal)
+<tr><td>{{ r.name }}</td><td class="num">{{ fa(r.personal.fee) }}</td><td class="num">{{ fa(r.personalFeeReceived) }}</td><td class="num {{ cls(0 - (r.personal.fee - r.personalFeeReceived)) }}">{{ fa(r.personal.fee - r.personalFeeReceived) }}</td></tr>
+@end
+@end
+</table></div>
+
+<div class="card sc"><h2>کارمزدهای ثبت‌شده</h2>
+<table><tr><th>تاریخ</th><th>دوره</th><th>نوع</th><th>سرمایه‌گذار</th><th>روش</th><th class="num">مبلغ</th><th>یادداشت</th><th></th></tr>
+@each(f in list)
+<tr><td>{{ jd(f.occurredOn) }}</td><td>{{ f.periodLabel }}</td><td>{{ f.scope == 'fund' ? 'صندوق' : 'حساب شخصی' }}</td><td>{{ f.investorId ? names.get(f.investorId) : '—' }}</td><td>{{ feeMethodFa(f.method) }}</td><td class="num">{{ fa(f.amount) }}</td><td>{{ f.note || '' }}</td>
+<td>
+@if(auth.user.role == 'admin')
+<div class="acts">
+@if(f.method == 'record' || f.method == 'settle')
+<a class="btn sm o" href="/fees/{{ f.id }}/edit">ویرایش</a>
+@end
+<form method="POST" action="/fees/{{ f.id }}/delete" data-confirm="حذف شود؟">{{ csrfField() }}<button class="sm danger">حذف</button></form></div>
+@end
+</td></tr>
+@else
+<tr><td colspan="8" class="sub">هنوز کارمزدی ثبت نشده.</td></tr>
+@end
+</table></div>
+@include('partials/foot')

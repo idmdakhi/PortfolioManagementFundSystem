@@ -55,3 +55,21 @@ export const personalValidator = vine.create({
   withdrawals: vine.number(),
   marketValue: vine.number(),
 })
+
+export const periodEditValidator = vine.create({
+  label: vine.string().trim(),
+  startJalali: vine.string().trim(),
+  endJalali: vine.string().trim(),
+  months: vine.number().min(1).max(12),
+  beginMarket: vine.number(),
+  openingDeposits: vine.number(),
+  openingWithdrawals: vine.number(),
+  fixedRate: vine.number(),
+  mgmtRate: vine.number(),
+  excessRate: vine.number(),
+  feeCap: vine.number(),
+  discount: vine.number(),
+  mgmtRate2: vine.number(),
+  excessRate2: vine.number(),
+  closeValue: vine.number().min(0).optional(),
+})

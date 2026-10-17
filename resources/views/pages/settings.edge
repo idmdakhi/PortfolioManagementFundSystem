@@ -1,34 +1,24 @@
 @include('partials/head')
 @if(rep.period.status == 'open')
-<div class="card"><h2>ارزش‌گذاری روز سبد (دورهٔ {{ rep.period.label }})</h2><form method="POST" action="/settings/valuation">{{ csrfField() }}<div class="g">
+<div class="card"><h2>ارزش‌گذاری روز سبد (دورهٔ {{ rep.period.label }})</h2><form method="POST" action="/valuations">{{ csrfField() }}<div class="g">
 <div><label>ارزش روز کل سبد (ریال)، با احتساب تراکنش‌ها تا آن روز</label><input name="marketValue" class="money" inputmode="numeric" value="{{ money(rep.params.marketValue) }}" required></div>
-<div><label>تاریخ ارزش‌گذاری (شمسی)</label><input name="valuationOn" dir="ltr" value="{{ today }}"></div></div><p><button>ثبت ارزش</button></p></form>
-<div class="sub">آخرین ارزش‌گذاری: {{ jd(rep.period.valuationOn) }}. صدور و ابطال‌های بعد از آن تاریخ به‌طور خودکار روی ارزش اضافه یا کم می‌شوند.</div></div>
+<div><label>تاریخ ارزش‌گذاری (شمسی)</label><input name="occurredOn" dir="ltr" value="{{ today }}"></div></div><p><button>ثبت ارزش</button></p></form>
+<div class="sub">ارزش‌گذاری‌ها به‌صورت دفتر تاریخ‌دار ثبت می‌شوند (صفحهٔ «ارزش‌گذاری و دفتر»). آخرین ارزش: {{ jd(rep.period.valuationOn) }}؛ صدور و ابطال‌های بعد از آن تاریخ به‌طور خودکار روی ارزش اضافه یا کم می‌شوند.</div></div>
+<div class="card"><h2>ویرایش دوره‌های بسته</h2>
+<div class="sub">وقتی روشن باشد، تراکنش‌ها، ارزش‌گذاری‌ها و کارمزدهای دوره‌های بسته هم قابل ثبت، ویرایش و حذف‌اند. بعد از ویرایش، در «<a href="/periods/manage">مدیریت دوره‌ها</a>» ارزش ابتدای دورهٔ بعد را به‌روزرسانی کنید.</div>
+<form method="POST" action="/settings/closed-edits"><br>{{ csrfField() }}<label><input type="checkbox" name="on" style="width:auto" {{ closedEdits ? 'checked' : '' }}> اجازهٔ ویرایش دوره‌های بسته</label>
+<p><button class="sm">ذخیره</button> <a href="/periods/manage">مدیریت دوره‌ها</a></p></form></div>
+<div class="card"><h2>سود بانکی (سود ثابت مشتری و صندوق)</h2>
+<div class="sub">همین درصد سالانه هم برای سود ثابت مشتری و هم برای صندوق به‌کار می‌رود. با تغییر آن، دورهٔ باز به‌روز می‌شود و دوره‌های بعدی با همین عدد شروع می‌شوند. دوره‌های بسته تغییر نمی‌کنند.</div>
+<form method="POST" action="/settings/bank-rate"><br>{{ csrfField() }}<div class="g">
+<div><label>سود بانکی (٪ سالانه)</label><input name="rate" inputmode="decimal" value="{{ bankRate === null ? rep.period.fixedRate : bankRate }}" required></div></div>
+<p><button class="sm">ذخیرهٔ سود بانکی</button></p></form></div>
 <div class="card"><h2>پارامترهای دوره</h2><form method="POST" action="/settings">{{ csrfField() }}<div class="g">
-<div><label>برچسب دوره</label><input name="label"  value="{{ rep.period.label }}" required></div><div><label>شروع (شمسی)</label><input name="startJalali" dir="ltr" value="{{ jraw(rep.period.startOn) }}" required></div><div><label>پایان (شمسی)</label><input name="endJalali" dir="ltr" value="{{ jraw(rep.period.endOn) }}" required></div><div><label>تعداد ماه دوره</label><input name="months" inputmode="decimal" value="{{ rep.period.months }}" required></div><div><label>ارزش روز ابتدای دوره</label><input name="beginMarket" class="money" inputmode="numeric" value="{{ money(rep.period.beginMarket) }}" required></div><div><label>واریز ثبت‌شده پیش از سیستم</label><input name="openingDeposits" class="money" inputmode="numeric" value="{{ money(rep.period.openingDeposits) }}" required></div><div><label>برداشت ثبت‌شده پیش از سیستم</label><input name="openingWithdrawals" class="money" inputmode="numeric" value="{{ money(rep.period.openingWithdrawals) }}" required></div><div><label>سود ثابت مشتری (٪ سالانه)</label><input name="fixedRate" inputmode="decimal" value="{{ rep.period.fixedRate }}" required></div><div><label>کارمزد ثابت صندوق (٪)</label><input name="mgmtRate" inputmode="decimal" value="{{ rep.period.mgmtRate }}" required></div><div><label>سهم از مازاد صندوق (٪)</label><input name="excessRate" inputmode="decimal" value="{{ rep.period.excessRate }}" required></div><div><label>سقف کارمزد (ده میلیون ریال)</label><input name="feeCap" inputmode="decimal" value="{{ rep.period.feeCap }}" required></div><div><label>تخفیف و اصلاحات</label><input name="discount" class="money" inputmode="numeric" value="{{ money(rep.period.discount) }}" required></div><div><label>کارمزد ثابت حساب شخصی (٪ سالانه)</label><input name="mgmtRate2" inputmode="decimal" value="{{ rep.period.mgmtRate2 }}" required></div><div><label>سهم از مازاد حساب شخصی (٪)</label><input name="excessRate2" inputmode="decimal" value="{{ rep.period.excessRate2 }}" required></div>
+<div><label>برچسب دوره</label><input name="label"  value="{{ rep.period.label }}" required></div><div><label>شروع (شمسی)</label><input name="startJalali" dir="ltr" value="{{ jraw(rep.period.startOn) }}" required></div><div><label>پایان (شمسی)</label><input name="endJalali" dir="ltr" value="{{ jraw(rep.period.endOn) }}" required></div><div><label>تعداد ماه دوره</label><input name="months" inputmode="decimal" value="{{ rep.period.months }}" required></div><div><label>ارزش روز ابتدای دوره</label><input name="beginMarket" class="money" inputmode="numeric" value="{{ money(rep.period.beginMarket) }}" required></div><div><label>واریز ثبت‌شده پیش از سیستم</label><input name="openingDeposits" class="money" inputmode="numeric" value="{{ money(rep.period.openingDeposits) }}" required></div><div><label>برداشت ثبت‌شده پیش از سیستم</label><input name="openingWithdrawals" class="money" inputmode="numeric" value="{{ money(rep.period.openingWithdrawals) }}" required></div><div><label>سود ثابت مشتری و صندوق = سود بانکی (٪ سالانه)</label><input name="fixedRate" inputmode="decimal" value="{{ rep.period.fixedRate }}" required></div><div><label>کارمزد ثابت صندوق (٪)</label><input name="mgmtRate" inputmode="decimal" value="{{ rep.period.mgmtRate }}" required></div><div><label>سهم از مازاد صندوق (٪)</label><input name="excessRate" inputmode="decimal" value="{{ rep.period.excessRate }}" required></div><div><label>سقف کارمزد (ده میلیون ریال)</label><input name="feeCap" inputmode="decimal" value="{{ rep.period.feeCap }}" required></div><div><label>تخفیف و اصلاحات</label><input name="discount" class="money" inputmode="numeric" value="{{ money(rep.period.discount) }}" required></div><div><label>کارمزد ثابت حساب شخصی (٪ سالانه)</label><input name="mgmtRate2" inputmode="decimal" value="{{ rep.period.mgmtRate2 }}" required></div><div><label>سهم از مازاد حساب شخصی (٪)</label><input name="excessRate2" inputmode="decimal" value="{{ rep.period.excessRate2 }}" required></div>
 </div><p><button>ذخیره</button></p></form></div>
 <div class="card"><h2>بستن دوره</h2><form method="POST" action="/settings/close" data-confirm="دورهٔ {{ rep.period.label }} بسته شود؟ تراکنش‌های آن قفل می‌شوند.">{{ csrfField() }}
 <div class="sub">ارزش روز فعلی به‌عنوان ارزش پایانی ثبت می‌شود و دورهٔ بعد با همین ارزش شروع می‌شود. پیش از بستن، ارزش‌گذاری پایان دوره را وارد کنید.</div><p><button class="danger">بستن دوره و شروع دورهٔ بعد</button></p></form></div>
 @else
 <div class="card">دورهٔ بازی وجود ندارد.</div>
 @end
-
-<div class="card">
-  <h2>پشتیبان‌گیری JSON</h2>
-  <div class="sub">یک فایل JSON کامل از تمام داده‌ها (دوره‌ها، سرمایه‌گذاران، تراکنش‌ها، حوزه‌ها، سودها و کاربران) دانلود کنید. این فایل مستقل از دیتابیس SQLite است و برای انتقال یا بازیابی مناسب است.</div>
-  <p>
-    <a class="btn" href="/settings/backup">دانلود پشتیبان JSON</a>
-  </p>
-  <hr style="margin:1rem 0;border:none;border-top:1px solid #ddd">
-  <h3>بازیابی از فایل JSON</h3>
-  <div class="sub">با بازیابی، <strong>تمام داده‌های فعلی جایگزین</strong> می‌شوند. قبل از بازیابی حتماً یک پشتیبان جدید بگیرید.</div>
-  <form method="POST" action="/settings/restore" enctype="multipart/form-data" data-confirm="آیا مطمئنید؟ تمام داده‌های فعلی با محتوای فایل جایگزین می‌شود.">
-    {{ csrfField() }}
-    <div class="g">
-      <div><label>فایل پشتیبان (.json)</label><input type="file" name="backup" accept=".json,application/json" required></div>
-    </div>
-    <p><button class="danger">بازیابی پشتیبان</button></p>
-  </form>
-</div>
-
 @include('partials/foot')

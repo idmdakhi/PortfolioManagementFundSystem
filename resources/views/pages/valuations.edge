@@ -1,0 +1,40 @@
+@include('partials/head')
+<div class="card sc"><h2>دوره‌های مالی: ابتدا و پایان، ارزش ابتدا و پایان</h2>
+<table><tr><th>دوره</th><th>وضعیت</th><th>شروع</th><th>پایان</th><th class="num">ارزش ابتدای دوره</th><th class="num">آخرین ارزش / ارزش پایانی</th><th>تاریخ آخرین ارزش</th></tr>
+@each(r in st.reports)
+<tr><td>{{ r.period.label }}</td><td><span class="badge {{ r.period.status == 'open' ? '' : 'cl' }}">{{ r.period.status == 'open' ? 'باز' : 'بسته' }}</span></td>
+<td>{{ jd(r.period.startOn) }}</td><td>{{ jd(r.period.endOn) }}</td><td class="num">{{ fa(r.valuation.open) }}</td><td class="num">{{ fa(r.valuation.latest) }}</td><td>{{ jd(r.valuation.latestOn) }}</td></tr>
+@end
+</table>
+<div class="sub"><a href="/periods/manage">مدیریت دوره‌ها (ویرایش، حذف)</a> — ارزش روز دوره = آخرین ارزش‌گذاری ثبت‌شده + صدور و ابطال‌های بعد از آن تاریخ − کارمزد نقدی پرداخت‌شده.</div></div>
+@if(auth.user.role == 'admin' && st.current && st.current.period.status == 'open')
+<div class="card"><h2>ثبت ارزش‌گذاری جدید (دورهٔ {{ st.current.period.label }})</h2>
+<form method="POST" action="/valuations">{{ csrfField() }}<div class="g">
+<div><label>ارزش روز کل صندوق (ریال)</label><input class="money" inputmode="numeric" name="marketValue" required></div>
+<div><label>تاریخ شمسی</label><input name="occurredOn" dir="ltr" value="{{ today }}"></div>
+<div><label>یادداشت</label><input name="note"></div></div>
+<p><button>ثبت ارزش</button></p></form>
+<div class="sub">هر ارزش‌گذاری یک رویداد تاریخ‌دار است. صدور و ابطال‌های هم‌روز یا قبل از آن تاریخ در آن لحاظ‌شده فرض می‌شوند. سود نقدی را در صفحهٔ «سود تقسیمی» ثبت کنید؛ در همین دفتر هم دیده می‌شود.</div></div>
+@end
+<div class="chips">
+<a href="/valuations" class="{{ type == '' ? 'on' : '' }}">همهٔ رویدادها</a>
+<a href="/valuations?t=valuation" class="{{ type == 'valuation' ? 'on' : '' }}">ارزش‌گذاری</a>
+<a href="/valuations?t=dividend" class="{{ type == 'dividend' ? 'on' : '' }}">سود نقدی</a>
+<a href="/valuations?t=tx" class="{{ type == 'tx' ? 'on' : '' }}">صدور و ابطال</a>
+<a href="/valuations?t=fee" class="{{ type == 'fee' ? 'on' : '' }}">کارمزد</a>
+</div>
+<div class="card sc"><h2>دفتر صندوق (به ترتیب تاریخ)</h2>
+<table><tr><th>تاریخ</th><th>رویداد</th><th class="num">مبلغ</th><th>یادداشت</th><th></th></tr>
+@each(e in list)
+<tr><td>{{ jd(e.date) }}</td><td>{{ e.title }}</td><td class="num">{{ e.amount !== null ? fa(e.amount) : '' }}</td><td>{{ e.note || '' }}</td>
+<td>
+@if(auth.user.role == 'admin' && e.deletable)
+<div class="acts"><a class="btn sm o" href="/valuations/{{ e.valId }}/edit">ویرایش</a>
+<form method="POST" action="/valuations/{{ e.valId }}/delete" data-confirm="این ارزش‌گذاری حذف شود؟">{{ csrfField() }}<button class="sm danger">حذف</button></form></div>
+@end
+</td></tr>
+@else
+<tr><td colspan="5" class="sub">رویدادی ثبت نشده.</td></tr>
+@end
+</table></div>
+@include('partials/foot')

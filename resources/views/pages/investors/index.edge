@@ -2,7 +2,11 @@
 <div class="sub">دورهٔ {{ rep.period.label }}</div>
 <div class="card sc"><table><tr><th>نام</th><th class="num">واحد</th><th class="num">سهم</th><th class="num">بهای تمام‌شده</th><th class="num">ارزش (پس از کارمزد)</th><th class="num">سود خالص دوره</th></tr>
 @each(r in rep.rows)
-<tr><td>{{ r.name }} <span class="sub"><a href="/investors/{{ r.id }}">صندوق</a> · <a href="/investors/{{ r.id }}/personal">شخصی</a> · <a href="/investors/{{ r.id }}/report">گزارش</a></span></td><td class="num">{{ fa2(r.unitsEnd) }}</td><td class="num">{{ pct(r.share) }}</td><td class="num">{{ fa(r.cost) }}</td><td class="num">{{ fa(r.fund.value) }}</td><td class="num {{ cls(r.fund.net) }}">{{ fa(r.fund.net) }}</td></tr>
+<tr><td>{{ r.name }} <span class="sub"><a href="/investors/{{ r.id }}">صندوق</a> · <a href="/investors/{{ r.id }}/personal">شخصی</a> · <a href="/investors/{{ r.id }}/report">گزارش</a>
+@if(auth.user.role == 'admin')
+ · <a href="/investors/{{ r.id }}/edit">ویرایش</a>
+@end
+</span></td><td class="num">{{ fa2(r.unitsEnd) }}</td><td class="num">{{ pct(r.share) }}</td><td class="num">{{ fa(r.cost) }}</td><td class="num">{{ fa(r.fund.value) }}</td><td class="num {{ cls(r.fund.net) }}">{{ fa(r.fund.net) }}</td></tr>
 @end
 </table></div>
 @if(auth.user.role == 'admin')
