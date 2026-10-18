@@ -6,6 +6,9 @@ import PersonalAccount from '#models/personal_account'
 import HistoryPeriod from '#models/history_period'
 import Area from '#models/area'
 import AreaEntry from '#models/area_entry'
+import FeeReceipt from '#models/fee_receipt'
+import Valuation from '#models/valuation'
+import { baseline, type Val } from '#services/valuation'
 import {
   fundSummary, fundAccount, personalAccount, replayPosition, ledgerIsValid,
   type PeriodParams, type Tx,
@@ -21,6 +24,18 @@ export interface LedgerTx extends Tx {
   occurredOn: string
   note: string | null
   batchId: string | null
+  /** 'fee' = units issued to the manager as fee: units and the investor's capital change, but no cash enters the fund. */
+  kind: 'normal' | 'fee'
+}
+export interface FeeRec {
+  id: number
+  scope: 'fund' | 'personal'
+  investorId: number | null
+  amount: number
+  occurredOn: string
+  method: 'record' | 'cash' | 'units' | 'settle'
+  note: string | null
+  txId: number | null
 }
 export interface AreaMove {
   id: number
@@ -55,6 +70,7 @@ export async function loadState() {
     .map((t) => ({
       id: t.id, investorId: t.investorId, type: t.type as 'issue' | 'redeem', amount: N(t.amount),
       nav: t.nav, units: t.units, occurredOn: t.occurredOn, note: t.note, batchId: t.batchId,
+      kind: (t.kind === 'fee' ? 'fee' : 'normal') as 'normal' | 'fee',
     }))
     .sort(byDate)
   const divs: Div[] = (await Dividend.query())
@@ -64,6 +80,15 @@ export async function loadState() {
     }))
     .sort(byDate)
 
+  const valuations: (Val & { note: string | null })[] = (await Valuation.query())
+    .map((v) => ({ id: v.id, occurredOn: v.occurredOn, marketValue: N(v.marketValue), kind: v.kind as Val['kind'], note: v.note }))
+    .sort(byDate)
+  const fees: FeeRec[] = (await FeeReceipt.query())
+    .map((f) => ({
+      id: f.id, scope: f.scope as 'fund' | 'personal', investorId: f.investorId, amount: N(f.amount),
+      occurredOn: f.occurredOn, method: f.method as FeeRec['method'], note: f.note, txId: f.txId,
+    }))
+    .sort(byDate)
   const areaEntries: AreaMove[] = (await AreaEntry.query())
     .map((e) => ({
       id: e.id, areaId: e.areaId, investorId: e.investorId, type: e.type as 'deposit' | 'withdraw',
@@ -99,8 +124,21 @@ export async function loadState() {
     const txIn = txs.filter((t) => inRange(t.occurredOn))
     const of = (l: LedgerTx[], type: string) => sumBy(l.filter((t) => t.type === type))
     const isOpen = period.status === 'open'
-    const after = isOpen ? txIn.filter((t) => t.occurredOn > period.valuationOn) : []
-    const marketValue = N(period.marketValueBase) + of(after, 'issue') - of(after, 'redeem')
+    // Fee-unit transactions bring no cash into the fund, so they are left out of deposits and market value.
+    const cashTx = txIn.filter((t) => t.kind !== 'fee')
+    const feesFund = fees.filter((f) => f.scope === 'fund' && inRange(f.occurredOn))
+    const sumF = (l: FeeRec[], m: string) => sumBy(l.filter((f) => f.method === m))
+    const feeCash = sumF(feesFund, 'cash')
+    const feeUnitsAmt = sumF(feesFund, 'units')
+    // Market value = latest valuation in the period + cash flows after that valuation date.
+    const base = baseline(
+      { startOn: period.startOn, endOn: period.endOn, marketValueBase: N(period.marketValueBase), valuationOn: period.valuationOn },
+      valuations
+    )
+    const adjust = isOpen || base.source === 'ledger'
+    const after = adjust ? cashTx.filter((t) => t.occurredOn > base.effDate) : []
+    const cashAfter = adjust ? sumBy(feesFund.filter((f) => f.method === 'cash' && f.occurredOn > base.effDate)) : 0
+    const marketValue = base.value + of(after, 'issue') - of(after, 'redeem') - cashAfter
     const fundDivs = divs.filter((d) => d.scope === 'fund' && inRange(d.occurredOn))
     const prev = reports[reports.length - 1]
 
@@ -109,8 +147,10 @@ export async function loadState() {
     const params: PeriodParams = {
       months: period.months,
       beginMarket: N(period.beginMarket),
-      deposits: N(period.openingDeposits) + of(txIn, 'issue'),
-      withdrawals: N(period.openingWithdrawals) + of(txIn, 'redeem'),
+      deposits: N(period.openingDeposits) + of(cashTx, 'issue'),
+      withdrawals: N(period.openingWithdrawals) + of(cashTx, 'redeem'),
+      feePaidCash: feeCash,
+      feeUnits: feeUnitsAmt,
       dividends: sumBy(fundDivs),
       marketValue,
       fixedRate: period.fixedRate, mgmtRate: period.mgmtRate, excessRate: period.excessRate,
@@ -148,14 +188,23 @@ export async function loadState() {
         unitsEnd: p.units, cost: p.cost,
         share: totalUnits > 0 ? (p.units / totalUnits) * 100 : 0,
         fund, fundDividends: div, personalDividends: personalDiv, personalRaw,
+        personalFeeReceived: sumBy(fees.filter((f) => f.scope === 'personal' && f.investorId === inv.id && inRange(f.occurredOn))),
         personal: personalRaw ? personalAccount({ ...personalRaw, dividends: personalDiv }, params) : null,
       }
     })
-    reports.push({ period, params, summary, totalUnits, rows })
+    const fundFees = {
+      accrued: summary.fee, cash: feeCash, units: feeUnitsAmt,
+      recorded: sumF(feesFund, 'record') + sumF(feesFund, 'settle'),
+      received: sumBy(feesFund), remaining: summary.feeRemaining,
+    }
+    reports.push({
+      period, params, summary, totalUnits, rows, fees: fundFees,
+      valuation: { open: N(period.beginMarket), latest: base.value, latestOn: base.effDate, source: base.source },
+    })
   }
 
   const current = [...reports].reverse().find((r) => r.period.status === 'open') ?? reports[reports.length - 1]
-  return { reports, current, investors, txs, divs, history, areas, areaEntries }
+  return { reports, current, investors, txs, divs, history, areas, areaEntries, fees, valuations }
 }
 
 export type Report = {
@@ -168,7 +217,10 @@ export type Report = {
     fund: ReturnType<typeof fundAccount>; fundDividends: number; personalDividends: number
     personalRaw: { beginValue: number; deposits: number; withdrawals: number; marketValue: number } | null
     personal: ReturnType<typeof personalAccount> | null
+    personalFeeReceived: number
   }[]
+  fees: { accrued: number; cash: number; units: number; recorded: number; received: number; remaining: number }
+  valuation: { open: number; latest: number; latestOn: string; source: 'ledger' | 'legacy' }
 }
 
 export type State = Awaited<ReturnType<typeof loadState>>

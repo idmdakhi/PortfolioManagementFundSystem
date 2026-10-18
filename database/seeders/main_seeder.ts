@@ -5,6 +5,8 @@ import Period from '#models/period'
 import Investor from '#models/investor'
 import PersonalAccount from '#models/personal_account'
 import Dividend from '#models/dividend'
+import Option from '#models/option'
+import Valuation from '#models/valuation'
 import HistoryPeriod from '#models/history_period'
 import { yearRange } from '#services/jalali'
 import { fundSummary, personalAccount, type PeriodParams } from '#services/fund_calculator'
@@ -25,112 +27,56 @@ const SEED: [string, number, number[]?][] = [
 ]
 
 const HISTORY: [string, number, number][] = [
-  ['1398', 106.9, 490000000],
-  ['1399', 84.77, 1000000000],
-  ['1400', 7.2, 0],
-  ['1401', 40.95, 0],
-  ['1402', 16.38, 0],
-  ['1403', 53.94, 222100000],
+  ['1398', 106.9, 490000000], ['1399', 84.77, 1000000000], ['1400', 7.2, 0],
+  ['1401', 40.95, 0], ['1402', 16.38, 0], ['1403', 53.94, 222100000],
 ]
 
 export default class extends BaseSeeder {
   async run() {
     await User.updateOrCreate(
-      { email: env.get('ADMIN_EMAIL', 'admin@admin.com') },
-      { fullName: 'مدیر', password: env.get('ADMIN_PASSWORD', 'admin'), role: 'admin' }
+      { email: env.get('ADMIN_EMAIL', 'admin@example.com') },
+      { fullName: 'مدیر', password: env.get('ADMIN_PASSWORD', 'ChangeMe-123'), role: 'admin' }
     )
     if (await Period.first()) return
 
     const y4 = yearRange(1404)
     const y5 = yearRange(1405)
-    const rates = {
-      fixedRate: 20,
-      mgmtRate: 1,
-      excessRate: 10,
-      feeCap: 100,
-      discount: 0,
-      mgmtRate2: 1,
-      excessRate2: 20,
-    }
+    const rates = { fixedRate: 20, mgmtRate: 1, excessRate: 10, feeCap: 100, discount: 0, mgmtRate2: 1, excessRate2: 20 }
     // 1404: closed, from the workbook's financial statement.
     const p4 = await Period.create({
-      label: '1404',
-      startOn: y4.start,
-      endOn: y4.end,
-      status: 'closed',
-      months: 12,
-      beginMarket: 5330610134,
-      openingDeposits: 28642247575,
-      openingWithdrawals: 11325805905,
-      marketValueBase: 28950492884,
-      valuationOn: y4.end,
-      ...rates,
+      label: '1404', startOn: y4.start, endOn: y4.end, status: 'closed', months: 12,
+      beginMarket: 5330610134, openingDeposits: 28642247575, openingWithdrawals: 11325805905,
+      marketValueBase: 28950492884, valuationOn: y4.end, ...rates,
     })
     // 1405: open, starts from the 1404 closing value after the 1404 fee was settled.
     const units = SEED.reduce((a, x) => a + x[1], 0)
     const base: PeriodParams = {
-      months: 12,
-      beginMarket: 5330610134,
-      deposits: 28642247575,
-      withdrawals: 11325805905,
-      dividends: 1344360,
-      marketValue: 28950492884,
-      ...rates,
+      months: 12, beginMarket: 5330610134, deposits: 28642247575, withdrawals: 11325805905, dividends: 1344360,
+      marketValue: 28950492884, ...rates,
     }
     const fee4 = fundSummary(base, units).fee
     const carryFund = 28950492884 - fee4
     const p5 = await Period.create({
-      label: '1405',
-      startOn: y5.start,
-      endOn: y5.end,
-      status: 'open',
-      months: 12,
-      beginMarket: carryFund,
-      openingDeposits: 0,
-      openingWithdrawals: 0,
-      marketValueBase: carryFund,
-      valuationOn: y4.end,
-      ...rates,
+      label: '1405', startOn: y5.start, endOn: y5.end, status: 'open', months: 12,
+      beginMarket: carryFund, openingDeposits: 0, openingWithdrawals: 0,
+      marketValueBase: carryFund, valuationOn: y4.end, ...rates, fixedRate: 24.67,
     })
-    await Dividend.create({
-      scope: 'fund',
-      investorId: null,
-      amount: 1344360,
-      occurredOn: y4.end,
-      note: 'سود نقدی سهام ۱۴۰۴',
-    })
+    await Valuation.createMany([
+      { occurredOn: y4.start, marketValue: 5330610134, kind: 'open', note: 'ارزش ابتدای دوره' },
+      { occurredOn: y4.end, marketValue: 28950492884, kind: 'close', note: 'ارزش پایانی دوره' },
+      { occurredOn: y5.start, marketValue: carryFund, kind: 'open', note: 'ارزش ابتدای دوره (پس از تسویهٔ کارمزد ۱۴۰۴)' },
+    ])
+    await Dividend.create({ scope: 'fund', investorId: null, amount: 1344360, occurredOn: y4.end, note: 'سود نقدی سهام ۱۴۰۴' })
 
     for (const [name, units, acc] of SEED) {
-      const inv = await Investor.create({
-        name,
-        openingUnits: units,
-        openingCost: units * AVG_COST,
-      })
+      const inv = await Investor.create({ name, openingUnits: units, openingCost: units * AVG_COST })
       const [beginValue, deposits, withdrawals, , marketValue] = acc ?? [0, 0, 0, 0, 0]
-      await PersonalAccount.create({
-        investorId: inv.id,
-        periodId: p4.id,
-        beginValue,
-        deposits,
-        withdrawals,
-        marketValue,
-      })
-      const fee = Math.round(
-        personalAccount(
-          { beginValue, deposits, withdrawals, marketValue, dividends: 0 },
-          { ...rates, months: 12 }
-        ).fee
-      )
-      await PersonalAccount.create({
-        investorId: inv.id,
-        periodId: p5.id,
-        beginValue: marketValue - fee,
-        deposits: 0,
-        withdrawals: 0,
-        marketValue: marketValue - fee,
-      })
+      await PersonalAccount.create({ investorId: inv.id, periodId: p4.id, beginValue, deposits, withdrawals, marketValue })
+      const fee = Math.round(personalAccount({ beginValue, deposits, withdrawals, marketValue, dividends: 0 }, { ...rates, months: 12 }).fee)
+      await PersonalAccount.create({ investorId: inv.id, periodId: p5.id, beginValue: marketValue - fee, deposits: 0, withdrawals: 0, marketValue: marketValue - fee })
     }
-    for (const [label, returnPct, fee] of HISTORY)
-      await HistoryPeriod.create({ label, returnPct, fee })
+    const me = await Investor.findBy('name', 'خودم')
+    if (me) await Option.query().where('list', 'setting').where('value', 'manager_investor').update({ extra: JSON.stringify({ investorId: me.id }) })
+    for (const [label, returnPct, fee] of HISTORY) await HistoryPeriod.create({ label, returnPct, fee })
   }
 }

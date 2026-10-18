@@ -24,21 +24,33 @@ export interface PeriodParams {
   discount: number
   mgmtRate2: number // % per year of capital, personal accounts
   excessRate2: number // % of excess, personal accounts
+  /** Fee already paid out of the fund in cash (the market value is net of it). */
+  feePaidCash?: number
+  /** Fee settled by issuing fund units to the manager (no cash leaves the fund). */
+  feeUnits?: number
 }
 
 export function fundSummary(p: PeriodParams, totalUnits: number) {
   const capital = p.beginMarket + p.deposits - p.withdrawals
-  const gross = p.marketValue - capital + p.dividends
+  // Fee paid in cash left the fund; add it back so profit and fee are measured before that payment.
+  const paidCash = p.feePaidCash ?? 0
+  const feeUnits = p.feeUnits ?? 0
+  const marketValue0 = p.marketValue + paidCash
+  const gross = marketValue0 - capital + p.dividends
   const fixed = r((capital * p.fixedRate * p.months) / 1200)
   const excessBase = gross - fixed
-  const mgmtFee = r((p.marketValue * p.mgmtRate) / 1200)
+  const mgmtFee = r((marketValue0 * p.mgmtRate) / 1200)
   const excessFee = Math.max(0, r((excessBase * p.excessRate) / 100))
   const raw = mgmtFee + excessFee - p.discount
   const fee = Math.max(0, Math.floor(Math.min(raw, p.feeCap * 1e7) / 1e5) * 1e5)
-  const nav = totalUnits > 0 ? (p.marketValue - fee) / totalUnits : 0
+  // Still owed to the manager: accrued fee minus what was already paid (cash) or converted to units.
+  const feeSettled = paidCash + feeUnits
+  const feeRemaining = fee - feeSettled
+  const nav = totalUnits > 0 ? (p.marketValue - feeRemaining) / totalUnits : 0
   return {
     capital, gross, fixed, excessBase, mgmtFee, excessFee, fee, nav,
-    marketValue: p.marketValue,
+    feeSettled, feeRemaining, feeUnits,
+    marketValue: p.marketValue, marketValue0,
     profit: gross - fee,
     returnPct: capital > 0 ? (gross / capital) * 100 : 0,
   }
@@ -56,8 +68,8 @@ export interface FundHolding {
 /** An investor's holding inside the fund, for one period. */
 export function fundAccount(h: FundHolding, s: Summary, totalUnits: number, p: Pick<PeriodParams, 'fixedRate' | 'months'>) {
   const share = totalUnits > 0 ? h.unitsEnd / totalUnits : 0
-  const marketShare = share * s.marketValue
-  const feeShare = share * s.fee
+  const marketShare = share * s.marketValue0
+  const feeShare = share * (s.fee - s.feeUnits) // fee converted to units is carried by the manager's units
   const value = h.unitsEnd * s.nav // = marketShare - feeShare
   const capital = h.beginValue + h.deposits - h.withdrawals
   const gross = marketShare - capital + h.dividends
@@ -90,7 +102,7 @@ export function personalAccount(a: PersonalInput, p: Pick<PeriodParams, 'fixedRa
   return { capital, gross, fixed, excess, mgmtFee, excessFee, fee, net: gross - fee, returnPct: capital > 0 ? (gross / capital) * 100 : 0 }
 }
 
-export interface Tx { type: 'issue' | 'redeem'; amount: number; units: number }
+export interface Tx { type: 'issue' | 'redeem'; amount: number; units: number; kind?: 'normal' | 'fee' }
 
 /** Replays transactions (already sorted by date, id): issue adds cost, redeem removes cost at average. */
 export function replayPosition(openingUnits: number, openingCost: number, txs: Tx[]) {
