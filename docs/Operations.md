@@ -11,7 +11,13 @@ node ace migration:run
 node ace db:seed
 npm run dev
 ```
-ورود: `ADMIN_EMAIL` / `ADMIN_PASSWORD` از `.env` (پیش‌فرض `admin@example.com` / `ChangeMe-123`). **بلافاصله بعد از اولین ورود گذرواژه را عوض کنید** (در `.env` مقدار تازه بگذارید و `node ace db:seed` را دوباره بزنید).
+ورود: `ADMIN_EMAIL` / `ADMIN_PASSWORD` از `.env` (پیش‌فرض `admin@example.com` / `ChangeMe-123`). مدیر **فقط یک‌بار** ساخته می‌شود؛ اجرای دوبارهٔ `db:seed` گذرواژهٔ موجود را تغییر نمی‌دهد.
+
+**بلافاصله بعد از اولین ورود گذرواژه را عوض کنید:**
+```
+node ace user:password admin@example.com
+```
+گذرواژه مخفی تایپ می‌شود (در تاریخچهٔ shell نمی‌ماند)، حداقل ۱۲ نویسه، و گذرواژه‌های پیش‌فرض/رایج پذیرفته نمی‌شود. در حالت production اگر `ADMIN_PASSWORD` ضعیف یا پیش‌فرض باشد، seed ساخته‌شدن مدیر را رد می‌کند.
 
 ### تولید (production)
 ```
@@ -28,7 +34,7 @@ node bin/server.js
 | `APP_KEY` | کلید رمزنگاری (با `generate:key`) |
 | `DB_PATH` | مسیر فایل SQLite؛ پیش‌فرض `database/seeders/db.sqlite3` |
 | `SESSION_DRIVER` | `cookie` (پیش‌فرض) یا `memory` |
-| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | مدیر اولیه هنگام `db:seed` |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | مدیر اولیه هنگام `db:seed` (فقط اگر هنوز وجود نداشته باشد) |
 
 ## راهنمای کاربری کوتاه
 - **ثبت صدور/ابطال**: «تراکنش‌ها». NAV خالی بماند = NAV دوره.

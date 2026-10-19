@@ -8,6 +8,7 @@ export default class DashboardController {
     const st = await loadState()
     const pid = Number(request.input('p'))
     const rep = st.reports.find((r) => r.period.id === pid) ?? st.current
+    if (!rep) return view.render('pages/empty', { nav: 'dash' })
     return view.render('pages/dashboard', { nav: 'dash', st, rep, rec: reconcile(st, todayIso()) })
   }
 }

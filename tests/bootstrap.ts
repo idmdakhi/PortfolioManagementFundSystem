@@ -16,6 +16,15 @@ import { sessionBrowserClient } from '@adonisjs/session/plugins/browser_client'
  * Configure Japa plugins in the plugins array.
  * Learn more - https://japa.dev/docs/runner-config#plugins-optional
  */
+/** DB_PATH comes from .env.test. Tests must never touch a real database. */
+function assertTestDatabase() {
+  if (!String(process.env.DB_PATH ?? '').includes('test')) throw new Error('Refusing to run: DB_PATH is not a test database')
+}
+if (process.env.NODE_ENV === 'test' && process.env.DB_PATH) {
+  assertTestDatabase()
+  rmSync(app.makePath(String(process.env.DB_PATH)), { force: true })
+}
+
 export const plugins: Config['plugins'] = [
   assert(),
   pluginAdonisJS(app),
@@ -41,11 +50,10 @@ export const runnerHooks: Required<Pick<Config, 'setup' | 'teardown'>> = {
  * Learn more - https://japa.dev/docs/test-suites#lifecycle-hooks
  */
 export const configureSuite: Config['configureSuite'] = (suite) => {
-  if (suite.name === 'integration') {
-    // Fresh private database for every run (DB_PATH comes from .env.test); never the real one.
+  if (suite.name === 'integration' || suite.name === 'functional') {
+    // The file is recreated once per run (see top of this file); each suite only makes sure migrations ran.
     suite.setup(async () => {
-      if (!String(process.env.DB_PATH ?? '').includes('test')) throw new Error('Refusing to run integration tests: DB_PATH is not a test database')
-      rmSync(app.makePath(String(process.env.DB_PATH)), { force: true })
+      assertTestDatabase()
       await testUtils.db().migrate()
     })
   }

@@ -6,6 +6,7 @@ import { withWriteLock } from '#services/write_lock'
 import { sanitizeBody } from '#services/audit'
 import DedupeMiddleware from '#middleware/dedupe_middleware'
 import { flashProblem } from '#services/flash_state'
+import { passwordProblem } from '#services/password_policy'
 
 const run = async (flashError: boolean | 'invalid', body: Record<string, unknown>) => {
   const flashes: string[] = []
@@ -127,5 +128,12 @@ test.group('audit body sanitising', () => {
     assert.notProperty(out, '_csrf')
     assert.lengthOf(out.note as string, 501)
     assert.equal(out.amount, '5')
+  })
+})
+
+test.group('password policy', () => {
+  test('rejects empty, default, common, short and repeated passwords; accepts a long one', ({ assert }) => {
+    for (const bad of ['', undefined, 'ChangeMe-123', 'admin', 'short-1', 'aaaaaaaaaaaaaaaa']) assert.isNotNull(passwordProblem(bad as string), String(bad))
+    assert.isNull(passwordProblem('Correct-Horse-Battery-1'))
   })
 })
