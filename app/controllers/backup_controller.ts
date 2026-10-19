@@ -4,6 +4,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { exportAll, importAll, validateBackup, TABLES } from '#services/backup'
 import { toJalaliStr, todayIso } from '#services/jalali'
 import { invalidateOptions } from '#services/options'
+import { audit } from '#services/audit'
 
 const stamp = () => {
   const d = new Date()
@@ -17,14 +18,17 @@ export default class BackupController {
     return view.render('pages/backup', { nav: 'bk', counts: data.counts, tables: TABLES })
   }
 
-  async export({ response }: HttpContext) {
+  async export(ctx: HttpContext) {
+    const { response } = ctx
     const data = await exportAll()
+    await audit.event(ctx, { action: 'backup.export', outcome: 'ok', detail: data.counts })
     response.header('Content-Type', 'application/json; charset=utf-8')
     response.header('Content-Disposition', `attachment; filename="fund-backup-${stamp()}.json"`)
     return response.send(JSON.stringify(data, null, 2))
   }
 
-  async import({ request, response, session }: HttpContext) {
+  async import(ctx: HttpContext) {
+    const { request, response, session, auth } = ctx
     const fail = (msg: string) => {
       session.flash('error', msg)
       return response.redirect('/backup')
@@ -47,8 +51,9 @@ export default class BackupController {
     const snap = `pre-restore-${stamp()}.json`
     await writeFile(`${dir}/${snap}`, JSON.stringify(await exportAll(), null, 2))
     try {
-      await importAll(data)
+      const counts = await importAll(data)
       invalidateOptions()
+      await audit.change({ auth, request }, { action: 'backup.restore', entity: 'database', entityId: null, before: { savedAs: `tmp/backups/${snap}` }, after: counts })
     } catch (e) {
       return fail('بازیابی انجام نشد و داده‌ها تغییری نکردند: ' + (e as Error).message)
     }

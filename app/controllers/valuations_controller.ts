@@ -5,6 +5,7 @@ import { loadState } from '#services/fund_state'
 import { baseline, type Val } from '#services/valuation'
 import { parseJalali, todayIso, todayJalali } from '#services/jalali'
 import { canEdit, reportOf, NOT_EDITABLE } from '#services/period_guard'
+import { audit } from '#services/audit'
 
 /** Keeps the stored legacy columns in line with the ledger (so older backups/tools still read a valid value). */
 export async function syncLegacy(period: Period) {
@@ -83,16 +84,17 @@ export default class ValuationsController {
     const rep = reportOf(st, date)
     if (!rep || !canEdit(st, date)) return fail(NOT_EDITABLE)
     const period = rep.period
-    await Valuation.create({
+    const created = await Valuation.create({
       occurredOn: date, marketValue: value, kind: 'value', note: String(b.note || '').trim() || null, createdBy: auth.user!.id,
     })
+    await audit.change({ auth, request }, { action: 'valuation.create', entity: 'valuation', entityId: created.id, after: created.serialize() })
     const fresh = await Period.findOrFail(period.id)
     await syncLegacy(fresh)
     session.flash('ok', 'ارزش‌گذاری ثبت شد.')
     return response.redirect('/valuations')
   }
 
-  async destroy({ params, response, session }: HttpContext) {
+  async destroy({ params, request, response, session, auth }: HttpContext) {
     const st = await loadState()
     const v = st.valuations.find((x) => x.id === Number(params.id))
     const fail = (m: string) => {
@@ -103,7 +105,10 @@ export default class ValuationsController {
     if (v.kind !== 'value') return fail('ارزش ابتدا و پایان دوره توسط خود برنامه مدیریت می‌شود.')
     if (!canEdit(st, v.occurredOn)) return fail('این ارزش‌گذاری در دورهٔ بسته است. برای حذف، «ویرایش دوره‌های بسته» را در تنظیمات روشن کنید.')
     const owner = reportOf(st, v.occurredOn)!.period
-    await (await Valuation.findOrFail(v.id)).delete()
+    const gone = await Valuation.findOrFail(v.id)
+    const before = gone.serialize()
+    await gone.delete()
+    await audit.change({ auth, request }, { action: 'valuation.delete', entity: 'valuation', entityId: v.id, before })
     await syncLegacy(await Period.findOrFail(owner.id))
     session.flash('ok', 'ارزش‌گذاری حذف شد.')
     return response.redirect('/valuations')
@@ -119,7 +124,7 @@ export default class ValuationsController {
     return view.render('pages/valuation_edit', { nav: 'val', st, v })
   }
 
-  async update({ request, params, response, session }: HttpContext) {
+  async update({ request, params, response, session, auth }: HttpContext) {
     const b = request.all()
     const st = await loadState()
     const v = st.valuations.find((x) => x.id === Number(params.id))
@@ -137,8 +142,10 @@ export default class ValuationsController {
     if (!date) return fail('تاریخ شمسی معتبر نیست.')
     if (!canEdit(st, date)) return fail(NOT_EDITABLE)
     const row = await Valuation.findOrFail(v.id)
+    const before = row.serialize()
     row.merge({ marketValue: value, occurredOn: date, note: String(b.note || '').trim() || null })
     await row.save()
+    await audit.change({ auth, request }, { action: 'valuation.update', entity: 'valuation', entityId: row.id, before, after: row.serialize() })
     for (const d of new Set([v.occurredOn, date])) {
       const rep = reportOf(st, d)
       if (rep) await syncLegacy(await Period.findOrFail(rep.period.id))

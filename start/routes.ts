@@ -27,6 +27,8 @@ router
     router.get('formulas', [controllers.Formulas, 'show'])
     router.get('fees', [controllers.Fees, 'index'])
     router.get('valuations', [controllers.Valuations, 'index'])
+    router.get('transactions/export', [controllers.Transactions, 'export'])
+    router.get('reconciliation', [controllers.Reconciliation, 'index'])
 
     router
       .group(() => {
@@ -43,6 +45,7 @@ router
         router.post('options/:id', [controllers.Options, 'update'])
         router.post('options/:id/delete', [controllers.Options, 'destroy'])
 
+        router.get('audit', [controllers.Audit, 'index'])
         router.get('backup', [controllers.Backup, 'index'])
         router.get('backup/export', [controllers.Backup, 'export'])
         router.post('backup/import', [controllers.Backup, 'import'])
@@ -91,4 +94,5 @@ router
       })
       .use(middleware.role({ roles: ['admin'] }))
   })
-  .use(middleware.auth())
+  // order matters: auth -> audit (logs the outcome) -> write lock (one write at a time) -> duplicate guard
+  .use([middleware.auth(), middleware.audit(), middleware.writeLock(), middleware.dedupe()])

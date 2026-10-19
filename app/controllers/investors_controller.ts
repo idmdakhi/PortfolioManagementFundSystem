@@ -6,6 +6,8 @@ import { managerInvestorId } from '#services/options'
 import { loadState } from '#services/fund_state'
 import { faDigits, todayJalali } from '#services/jalali'
 import { investorValidator, personalValidator } from '#validators/fund'
+import { audit } from '#services/audit'
+import { closedEditsAllowed } from '#services/options'
 
 export default class InvestorsController {
   async index({ view }: HttpContext) {
@@ -68,20 +70,33 @@ export default class InvestorsController {
     })
   }
 
-  async store({ request, response, session }: HttpContext) {
+  async store({ request, response, session, auth }: HttpContext) {
     const d = await request.validateUsing(investorValidator)
     const inv = await Investor.create({
       name: d.name, notes: d.notes ?? null, openingUnits: d.openingUnits ?? 0, openingCost: d.openingCost ?? 0,
     })
     const { current } = await loadState()
     if (current) await PersonalAccount.create({ investorId: inv.id, periodId: current.period.id })
+    await audit.change({ auth, request }, { action: 'investor.create', entity: 'investor', entityId: inv.id, after: inv.serialize() })
     session.flash('ok', 'سرمایه‌گذار اضافه شد.')
     return response.redirect('/investors')
   }
 
-  async personal({ request, params, response, session }: HttpContext) {
+  async personal({ request, params, response, session, auth }: HttpContext) {
     const { periodId, ...d } = await request.validateUsing(personalValidator)
-    await PersonalAccount.updateOrCreate({ investorId: Number(params.id), periodId }, d)
+    const { reports } = await loadState()
+    const period = reports.find((r) => r.period.id === periodId)?.period
+    if (!period) {
+      session.flash('error', 'دورهٔ انتخاب‌شده پیدا نشد.')
+      return response.redirect(`/investors/${params.id}/personal`)
+    }
+    if (period.status === 'closed' && !closedEditsAllowed()) {
+      session.flash('error', 'این دوره بسته است. برای ویرایش حساب شخصی آن، «ویرایش دوره‌های بسته» را در تنظیمات روشن کنید.')
+      return response.redirect(`/investors/${params.id}/personal`)
+    }
+    const prev = await PersonalAccount.query().where('investor_id', Number(params.id)).where('period_id', periodId).first()
+    const saved = await PersonalAccount.updateOrCreate({ investorId: Number(params.id), periodId }, d)
+    await audit.change({ auth, request }, { action: 'personal.save', entity: 'personal_account', entityId: saved.id, before: prev?.serialize() ?? null, after: saved.serialize() })
     session.flash('ok', 'حساب شخصی ذخیره شد.')
     return response.redirect(`/investors/${params.id}/personal`)
   }
@@ -95,21 +110,23 @@ export default class InvestorsController {
     return view.render('pages/investors/edit', { nav: 'inv', inv })
   }
 
-  async update({ request, params, response, session }: HttpContext) {
+  async update({ request, params, response, session, auth }: HttpContext) {
     const d = await request.validateUsing(investorValidator)
     const inv = await Investor.find(Number(params.id))
     if (!inv) {
       session.flash('error', 'سرمایه‌گذار پیدا نشد.')
       return response.redirect('/investors')
     }
+    const before = inv.serialize()
     inv.merge({ name: d.name, notes: d.notes ?? null, openingUnits: d.openingUnits ?? 0, openingCost: d.openingCost ?? 0 })
     await inv.save()
+    await audit.change({ auth, request }, { action: 'investor.update', entity: 'investor', entityId: inv.id, before, after: inv.serialize() })
     session.flash('ok', 'سرمایه‌گذار ویرایش شد.')
     return response.redirect('/investors')
   }
 
   /** Deletes an investor only when nothing else refers to him. */
-  async destroy({ params, response, session }: HttpContext) {
+  async destroy({ params, request, response, session, auth }: HttpContext) {
     const id = Number(params.id)
     const st = await loadState()
     const fail = (m: string) => {
@@ -135,6 +152,7 @@ export default class InvestorsController {
       await trx.from('personal_accounts').where('investor_id', id).delete()
       await trx.from('investors').where('id', id).delete()
     })
+    await audit.change({ auth, request }, { action: 'investor.delete', entity: 'investor', entityId: id, before: inv })
     session.flash('ok', 'سرمایه‌گذار حذف شد.')
     return response.redirect('/investors')
   }

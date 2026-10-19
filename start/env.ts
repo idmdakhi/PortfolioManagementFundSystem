@@ -24,6 +24,8 @@ export default await Env.create(new URL('../', import.meta.url), {
   | Variables for configuring session package
   |----------------------------------------------------------
   */
+  /** SQLite file. Relative paths are resolved from the project root. Default keeps the historical location. */
+  DB_PATH: Env.schema.string.optional(),
   ADMIN_EMAIL: Env.schema.string.optional(),
   ADMIN_PASSWORD: Env.schema.string.optional(),
 

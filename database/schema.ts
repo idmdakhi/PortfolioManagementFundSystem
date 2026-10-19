@@ -53,6 +53,41 @@ export class AreaSchema extends BaseModel {
   declare valuedOn: string | null
 }
 
+export class AuditLogSchema extends BaseModel {
+  static $columns = ['action', 'after', 'before', 'createdAt', 'detail', 'entity', 'entityId', 'id', 'ip', 'kind', 'method', 'outcome', 'path', 'userEmail', 'userId'] as const
+  $columns = AuditLogSchema.$columns
+  @column()
+  declare action: string
+  @column()
+  declare after: string | null
+  @column()
+  declare before: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare detail: string | null
+  @column()
+  declare entity: string | null
+  @column()
+  declare entityId: string | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare ip: string | null
+  @column()
+  declare kind: string
+  @column()
+  declare method: string | null
+  @column()
+  declare outcome: string | null
+  @column()
+  declare path: string | null
+  @column()
+  declare userEmail: string | null
+  @column()
+  declare userId: number | null
+}
+
 export class DividendSchema extends BaseModel {
   static $columns = ['amount', 'createdAt', 'createdBy', 'id', 'investorId', 'note', 'occurredOn', 'scope', 'updatedAt'] as const
   $columns = DividendSchema.$columns
@@ -74,6 +109,31 @@ export class DividendSchema extends BaseModel {
   declare scope: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
+}
+
+export class FeeReceiptSchema extends BaseModel {
+  static $columns = ['amount', 'createdAt', 'createdBy', 'id', 'investorId', 'method', 'note', 'occurredOn', 'scope', 'txId'] as const
+  $columns = FeeReceiptSchema.$columns
+  @column()
+  declare amount: bigint | number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare createdBy: number | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare investorId: number | null
+  @column()
+  declare method: string
+  @column()
+  declare note: string | null
+  @column()
+  declare occurredOn: string
+  @column()
+  declare scope: string
+  @column()
+  declare txId: number | null
 }
 
 export class HistoryPeriodSchema extends BaseModel {
@@ -268,7 +328,7 @@ export class PersonalAccountSchema extends BaseModel {
 }
 
 export class TransactionSchema extends BaseModel {
-  static $columns = ['amount', 'batchId', 'createdAt', 'createdBy', 'editNote', 'editedAt', 'editedBy', 'id', 'investorId', 'isDeleted', 'nav', 'note', 'occurredOn', 'reversesId', 'type', 'units', 'updatedAt'] as const
+  static $columns = ['amount', 'batchId', 'createdAt', 'createdBy', 'editNote', 'editedAt', 'editedBy', 'id', 'investorId', 'isDeleted', 'kind', 'nav', 'note', 'occurredOn', 'reversesId', 'type', 'units', 'updatedAt'] as const
   $columns = TransactionSchema.$columns
   @column()
   declare amount: bigint | number
@@ -290,6 +350,8 @@ export class TransactionSchema extends BaseModel {
   declare investorId: number
   @column()
   declare isDeleted: boolean
+  @column()
+  declare kind: string
   @column()
   declare nav: number
   @column()
@@ -323,4 +385,23 @@ export class UserSchema extends BaseModel {
   declare role: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
+}
+
+export class ValuationSchema extends BaseModel {
+  static $columns = ['createdAt', 'createdBy', 'id', 'kind', 'marketValue', 'note', 'occurredOn'] as const
+  $columns = ValuationSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare createdBy: number | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare kind: string
+  @column()
+  declare marketValue: bigint | number
+  @column()
+  declare note: string | null
+  @column()
+  declare occurredOn: string
 }

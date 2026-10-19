@@ -15,11 +15,15 @@
 <a href="/movements" class="{{ nav == 'mv' ? 'on' : '' }}">حرکت گروهی</a>
 <a href="/areas" class="{{ nav == 'ar' ? 'on' : '' }}">حوزه‌ها</a>
 <a href="/dividends" class="{{ nav == 'div' ? 'on' : '' }}">سود تقسیمی</a>
+<a href="/valuations" class="{{ nav == 'val' ? 'on' : '' }}">ارزش‌گذاری و دفتر</a>
+<a href="/fees" class="{{ nav == 'fee' ? 'on' : '' }}">کارمزدها</a>
+<a href="/reconciliation" class="{{ nav == 'rec' ? 'on' : '' }}">تطبیق</a>
 <a href="/formulas" class="{{ nav == 'fm' ? 'on' : '' }}">فرمول‌ها</a>
 @if(auth.user.role == 'admin')
 <a href="/settings" class="{{ nav == 'set' ? 'on' : '' }}">تنظیمات</a>
 <a href="/options" class="{{ nav == 'op' ? 'on' : '' }}">فهرست‌ها</a>
 <a href="/backup" class="{{ nav == 'bk' ? 'on' : '' }}">پشتیبان‌گیری</a>
+<a href="/audit" class="{{ nav == 'au' ? 'on' : '' }}">سابقه</a>
 @end
 </nav>
 @end
@@ -29,6 +33,10 @@
 @if(flashMessages.has('error'))
 <div class="flash err">{{ flashMessages.get('error') }}</div>
 @end
-@if(flashMessages.has('errors.email') || flashMessages.has('E_VALIDATION_ERROR'))
-<div class="flash err">ورودی‌ها را بررسی کنید.</div>
+@if(formErrors(flashMessages).length)
+<div class="flash err">ورودی‌ها را بررسی کنید:
+@each(m in formErrors(flashMessages))
+<div dir="auto">{{ m }}</div>
+@end
+</div>
 @end

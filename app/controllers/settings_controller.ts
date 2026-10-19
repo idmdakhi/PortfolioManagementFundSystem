@@ -1,19 +1,21 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { loadState } from '#services/fund_state'
-import { parseJalali, todayJalali } from '#services/jalali'
+import { parseJalali, todayJalali, todayIso } from '#services/jalali'
 import { settingsValidator } from '#validators/fund'
 import Option from '#models/option'
 import Valuation from '#models/valuation'
 import { invalidateOptions, bankRate, closedEditsAllowed } from '#services/options'
 import { syncLegacy, ensureLedger } from '#controllers/valuations_controller'
+import { audit } from '#services/audit'
+import { reconcile } from '#services/reconcile'
 
 export default class SettingsController {
   async edit({ view }: HttpContext) {
     const st = await loadState()
-    return view.render('pages/settings', { nav: 'set', st, rep: st.current, today: todayJalali(), bankRate: bankRate(), closedEdits: closedEditsAllowed() })
+    return view.render('pages/settings', { nav: 'set', st, rep: st.current, today: todayJalali(), bankRate: bankRate(), closedEdits: closedEditsAllowed(), rec: reconcile(st, todayIso()) })
   }
 
-  async update({ request, response, session }: HttpContext) {
+  async update({ request, response, session, auth }: HttpContext) {
     const { startJalali, endJalali, ...d } = await request.validateUsing(settingsValidator)
     const { current } = await loadState()
     const startOn = parseJalali(startJalali)
@@ -25,8 +27,10 @@ export default class SettingsController {
     } else {
       await ensureLedger(current.period)
       const oldStart = current.period.startOn
+      const before = current.period.serialize()
       current.period.merge({ ...d, startOn, endOn })
       await current.period.save()
+      await audit.change({ auth, request }, { action: 'settings.update', entity: 'period', entityId: current.period.id, before, after: current.period.serialize() })
       // keep the period's opening entry in the valuation ledger in line with the edited begin value / start date
       const open = await Valuation.query().where('kind', 'open').where('occurred_on', oldStart).first()
       if (open) {
@@ -43,7 +47,7 @@ export default class SettingsController {
   }
 
   /** Bank interest = fixed rate for customers and the fund. Applies to the open period and to new periods. */
-  async bankRate({ request, response, session }: HttpContext) {
+  async bankRate({ request, response, session, auth }: HttpContext) {
     const rate = Number(request.input('rate'))
     const { current } = await loadState()
     if (!(rate >= 0 && rate <= 1000)) {
@@ -53,8 +57,10 @@ export default class SettingsController {
     const opt =
       (await Option.query().where('list', 'setting').where('value', 'bank_rate').first()) ??
       new Option().merge({ list: 'setting', value: 'bank_rate', label: 'سود بانکی (سود ثابت مشتری و صندوق)، درصد سالانه', active: true, builtin: true, sort: 98 })
+    const previousRate = bankRate()
     opt.extra = JSON.stringify({ rate })
     await opt.save()
+    await audit.change({ auth, request }, { action: 'settings.bank_rate', entity: 'option', entityId: 'bank_rate', before: { rate: previousRate }, after: { rate } })
     invalidateOptions()
     if (current && current.period.status === 'open') {
       current.period.fixedRate = rate
@@ -65,13 +71,15 @@ export default class SettingsController {
   }
 
   /** Admin switch: allow creating/editing/deleting data that belongs to closed periods. */
-  async closedEdits({ request, response, session }: HttpContext) {
+  async closedEdits({ request, response, session, auth }: HttpContext) {
     const on = request.input('on') === 'on'
     const opt =
       (await Option.query().where('list', 'setting').where('value', 'allow_closed_edit').first()) ??
       new Option().merge({ list: 'setting', value: 'allow_closed_edit', label: 'اجازهٔ ویرایش دوره‌های بسته', active: true, builtin: true, sort: 97 })
+    const wasOn = closedEditsAllowed()
     opt.extra = JSON.stringify({ on })
     await opt.save()
+    await audit.change({ auth, request }, { action: 'settings.closed_edits', entity: 'option', entityId: 'allow_closed_edit', before: { on: wasOn }, after: { on } })
     invalidateOptions()
     session.flash('ok', on ? 'ویرایش دوره‌های بسته روشن شد.' : 'ویرایش دوره‌های بسته خاموش شد.')
     return response.redirect('/settings')

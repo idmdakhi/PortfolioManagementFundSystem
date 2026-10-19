@@ -3,7 +3,13 @@ node_modules
 build
 tmp
 
-!db/db*
+# Real financial data must never be committed (names + amounts of real people)
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
+database/fund-backup-*.json
+database/financial_statement.json
 
 # Secrets
 .env

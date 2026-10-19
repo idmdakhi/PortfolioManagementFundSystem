@@ -9,7 +9,7 @@
 
 ## اجرا روی ویندوز
 
-۱. **Node.js 24 (LTS)** را از nodejs.org نصب کنید. (AdonisJS 7 به Node 24 یا بالاتر نیاز دارد.)
+۱. **Node.js 24 (LTS)** را از nodejs.org نصب کنید. (توصیهٔ AdonisJS 7؛ آزمون‌ها روی Node 22 و 24 اجرا می‌شوند.)
 ۲. پوشه را از حالت zip درآورید و در PowerShell داخلش بروید:
 
 ```powershell
@@ -39,10 +39,17 @@ node ace test unit
 - `app/services/fund_calculator.ts`: محاسبات خالص (بدون دیتابیس)، عیناً از اکسل
 - `app/services/fund_state.ts`: ساخت وضعیت دوره از روی دیتابیس و تراکنش‌ها
 - `app/services/jalali.ts`: تبدیل تاریخ شمسی و میلادی
-- `database/migrations`: جدول‌ها (`users` با `role`, `periods`, `investors`, `transactions`, `personal_accounts`, `dividends`, `history_periods`)
+- `app/services/{audit,reconcile,write_lock,duplicate_guard,login_throttle,csv}.ts`: حسابرسی، تطبیق، قفل نوشتن، محافظ تکرار، محدودیت ورود، CSV
+- `database/migrations`: جدول‌ها (`users` با `role`, `periods`, `investors`, `transactions`, `personal_accounts`, `dividends`, `history_periods`, `audit_logs`, …؛ `docs/DataModel.md`)
 - `database/schema.ts`: کلاس‌های مدل که Lucid از روی migrationها می‌سازد (دستی ویرایش نکنید)
 - `database/seeders/main_seeder.ts`: دادهٔ اولیه از اکسل
-- دیتابیس: فایل `tmp/db.sqlite3` (برای پشتیبان‌گیری همین فایل را کپی کنید)
+- دیتابیس: فایل SQLite؛ مسیر با `DB_PATH` (بدون آن: `database/seeders/db.sqlite3`)؛ برای پشتیبان‌گیری همین فایل را کپی کنید یا از صفحهٔ «پشتیبان‌گیری» استفاده کنید
+
+## کنترل‌ها و مستندات
+
+- سابقهٔ حسابرسی («سابقه»)، تطبیق مالی («تطبیق»)، قفل نوشتن، محافظ ارسال تکراری، محدودیت ورود، خروجی CSV.
+- مستندات کامل: [`docs/README.md`](docs/README.md) (فهرست و نقشه راه)، [`docs/AUDIT.md`](docs/AUDIT.md) (وضعیت واقعی)، [`docs/Operations.md`](docs/Operations.md) (نصب، پشتیبان، بازیابی).
+- **داده‌های واقعی را در گیت نگذارید** (`docs/Security.md`).
 
 ## نکته‌های طراحی
 

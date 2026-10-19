@@ -7,6 +7,7 @@ import { loadState, ledgerOk, type State } from '#services/fund_state'
 import { parseJalali, todayIso, todayJalali } from '#services/jalali'
 import { invalidateOptions, managerInvestorId } from '#services/options'
 import { canEdit } from '#services/period_guard'
+import { audit } from '#services/audit'
 
 const num = (v: unknown) => Number(v)
 /** The manager investor: the saved setting, else the investor named «خودم». */
@@ -52,9 +53,10 @@ export default class FeesController {
       if (!canEdit(st, date)) return fail('پرداخت نقدی فقط در دورهٔ قابل ویرایش ممکن است. برای دورهٔ بسته از «ثبت سابقه» استفاده کنید.')
       if (amount > Math.round(rep.summary.feeRemaining)) return fail(`مبلغ بیشتر از کارمزد باقی‌مانده است (${Math.round(rep.summary.feeRemaining).toLocaleString('fa-IR')} ریال).`)
     }
-    await FeeReceipt.create({
+    const created = await FeeReceipt.create({
       scope, investorId, amount, occurredOn: date, method, note: String(b.note || '').trim() || null, createdBy: auth.user!.id,
     })
+    await audit.change({ auth, request }, { action: 'fee.create', entity: 'fee_receipt', entityId: created.id, after: created.serialize() })
     session.flash('ok', 'کارمزد دریافتی ثبت شد.')
     return response.redirect('/fees')
   }
@@ -82,16 +84,18 @@ export default class FeesController {
     if (!(nav > 0)) return fail('NAV معتبر نیست.')
     const units = amount / nav
     const note = String(b.note || '').trim() || 'انتقال کارمزد با صدور واحد'
-    await db.transaction(async (trx) => {
+    const made = await db.transaction(async (trx) => {
       const tx = await Transaction.create(
         { investorId: mid, type: 'issue', kind: 'fee', amount, nav, units, occurredOn: date, note, createdBy: auth.user!.id },
         { client: trx }
       )
-      await FeeReceipt.create(
+      const receipt = await FeeReceipt.create(
         { scope: 'fund', investorId: null, amount, occurredOn: date, method: 'units', note, txId: tx.id, createdBy: auth.user!.id },
         { client: trx }
       )
+      return { tx: tx.serialize(), receipt: receipt.serialize() }
     })
+    await audit.change({ auth, request }, { action: 'fee.transfer', entity: 'fee_receipt', entityId: made.receipt.id, after: made })
     session.flash('ok', `${amount.toLocaleString('fa-IR')} ریال کارمزد به‌صورت ${units.toLocaleString('fa-IR', { maximumFractionDigits: 4 })} واحد صادر شد.`)
     return response.redirect('/fees')
   }
@@ -113,7 +117,7 @@ export default class FeesController {
     return response.redirect('/fees')
   }
 
-  async destroy({ params, response, session }: HttpContext) {
+  async destroy({ params, request, response, session, auth }: HttpContext) {
     const st = await loadState()
     const f = st.fees.find((x) => x.id === Number(params.id))
     const fail = (m: string) => {
@@ -132,6 +136,7 @@ export default class FeesController {
       if (f.method === 'units' && f.txId) await trx.from('transactions').where('id', f.txId).delete()
       await trx.from('fee_receipts').where('id', f.id).delete()
     })
+    await audit.change({ auth, request }, { action: 'fee.delete', entity: 'fee_receipt', entityId: f.id, before: { receipt: f, tx: f.txId ? st.txs.find((t) => t.id === f.txId) : null } })
     session.flash('ok', 'حذف شد.')
     return response.redirect('/fees')
   }
@@ -146,7 +151,7 @@ export default class FeesController {
     return view.render('pages/fee_edit', { nav: 'fee', st, f })
   }
 
-  async update({ request, params, response, session }: HttpContext) {
+  async update({ request, params, response, session, auth }: HttpContext) {
     const b = request.all()
     const st = await loadState()
     const f = st.fees.find((x) => x.id === Number(params.id))
@@ -168,8 +173,10 @@ export default class FeesController {
       if (!st.investors.some((i) => i.id === investorId)) return fail('برای کارمزد شخصی، سرمایه‌گذار را انتخاب کنید.')
     }
     const row = await FeeReceipt.findOrFail(f.id)
+    const before = row.serialize()
     row.merge({ scope, investorId, amount, occurredOn: date, note: String(b.note || '').trim() || null })
     await row.save()
+    await audit.change({ auth, request }, { action: 'fee.update', entity: 'fee_receipt', entityId: row.id, before, after: row.serialize() })
     session.flash('ok', 'ویرایش شد.')
     return response.redirect('/fees')
   }

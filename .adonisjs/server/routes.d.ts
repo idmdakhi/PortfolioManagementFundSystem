@@ -21,6 +21,8 @@ export type ScannedRoutes = {
     'formulas.show': { paramsTuple?: []; params?: {} }
     'fees.index': { paramsTuple?: []; params?: {} }
     'valuations.index': { paramsTuple?: []; params?: {} }
+    'transactions.export': { paramsTuple?: []; params?: {} }
+    'reconciliation.index': { paramsTuple?: []; params?: {} }
     'investors.store': { paramsTuple?: []; params?: {} }
     'investors.personal': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'transactions.store': { paramsTuple?: []; params?: {} }
@@ -31,6 +33,7 @@ export type ScannedRoutes = {
     'options.store': { paramsTuple?: []; params?: {} }
     'options.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'options.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'audit.index': { paramsTuple?: []; params?: {} }
     'backup.index': { paramsTuple?: []; params?: {} }
     'backup.export': { paramsTuple?: []; params?: {} }
     'backup.import': { paramsTuple?: []; params?: {} }
@@ -88,8 +91,11 @@ export type ScannedRoutes = {
     'formulas.show': { paramsTuple?: []; params?: {} }
     'fees.index': { paramsTuple?: []; params?: {} }
     'valuations.index': { paramsTuple?: []; params?: {} }
+    'transactions.export': { paramsTuple?: []; params?: {} }
+    'reconciliation.index': { paramsTuple?: []; params?: {} }
     'transactions.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'options.index': { paramsTuple?: []; params?: {} }
+    'audit.index': { paramsTuple?: []; params?: {} }
     'backup.index': { paramsTuple?: []; params?: {} }
     'backup.export': { paramsTuple?: []; params?: {} }
     'periods.manage': { paramsTuple?: []; params?: {} }
@@ -117,8 +123,11 @@ export type ScannedRoutes = {
     'formulas.show': { paramsTuple?: []; params?: {} }
     'fees.index': { paramsTuple?: []; params?: {} }
     'valuations.index': { paramsTuple?: []; params?: {} }
+    'transactions.export': { paramsTuple?: []; params?: {} }
+    'reconciliation.index': { paramsTuple?: []; params?: {} }
     'transactions.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'options.index': { paramsTuple?: []; params?: {} }
+    'audit.index': { paramsTuple?: []; params?: {} }
     'backup.index': { paramsTuple?: []; params?: {} }
     'backup.export': { paramsTuple?: []; params?: {} }
     'periods.manage': { paramsTuple?: []; params?: {} }

@@ -1,4 +1,5 @@
 @include('partials/head')
+<p class="noprint"><a class="btn sm" href="/transactions/export">خروجی CSV (برای Excel)</a></p>
 @if(auth.user.role == 'admin')
 <div class="card"><h2>ثبت صدور یا ابطال (NAV فعلی: {{ fa2(st.current.summary.nav) }})</h2>
 <form method="POST" action="/transactions">{{ csrfField() }}<div class="g">
@@ -18,7 +19,9 @@
 @each(t in txs)
 <tr><td>{{ jd(t.occurredOn) }}</td><td>{{ names.get(t.investorId) }}</td><td>{{ typeFa(t.type) }}</td><td class="num">{{ fa(t.amount) }}</td><td class="num">{{ fa2(t.nav) }}</td><td class="num">{{ fa2(t.units) }}</td><td>{{ t.note || '' }}</td>
 <td>
-@if(t.batchId)
+@if(t.kind == 'fee')
+<a class="badge" href="/fees">کارمزد</a>
+@elseif(t.batchId)
 <a class="badge" href="/movements">گروهی</a>
 @elseif(auth.user.role == 'admin' && !t.locked)
 <div class="acts"><a class="btn sm o" href="/transactions/{{ t.id }}/edit">ویرایش</a>

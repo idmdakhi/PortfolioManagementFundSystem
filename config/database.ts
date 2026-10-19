@@ -1,10 +1,26 @@
+import { mkdirSync } from 'node:fs'
+import { dirname, isAbsolute } from 'node:path'
 import app from '@adonisjs/core/services/app'
+import env from '#start/env'
 import { defineConfig } from '@adonisjs/lucid'
 
 /**
  * Database configuration.
  * Defines database connections, query settings, and migration options.
  */
+/**
+ * DB_PATH decides where the SQLite file lives. Without it the historical location
+ * (database/seeders/db.sqlite3) is kept so that existing data is never silently abandoned.
+ * Tests always get their own file through .env.test.
+ */
+const dbFile = (() => {
+  const configured = env.get('DB_PATH')
+  if (!configured) return app.seedersPath('db.sqlite3')
+  const file = isAbsolute(configured) ? configured : app.makePath(configured)
+  mkdirSync(dirname(file), { recursive: true })
+  return file
+})()
+
 const dbConfig = defineConfig({
   /**
    * The default database connection to use for making queries.
@@ -36,7 +52,7 @@ const dbConfig = defineConfig({
          * Path to the SQLite database file.
          * Stored in the tmp directory by default.
          */
-        filename: app.seedersPath('db.sqlite3'),
+        filename: dbFile,
       },
 
       /**

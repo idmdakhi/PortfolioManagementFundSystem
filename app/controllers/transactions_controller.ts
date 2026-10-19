@@ -4,6 +4,9 @@ import { loadState, ledgerOk, type LedgerTx } from '#services/fund_state'
 import { parseJalali, todayIso, todayJalali } from '#services/jalali'
 import { transactionValidator } from '#validators/fund'
 import { canEdit, reportOf, NOT_EDITABLE } from '#services/period_guard'
+import { audit } from '#services/audit'
+import { toCsv } from '#services/csv'
+import { toJalaliStr } from '#services/jalali'
 
 export default class TransactionsController {
   async index({ view }: HttpContext) {
@@ -23,6 +26,22 @@ export default class TransactionsController {
     return view.render('pages/transaction_edit', { nav: 'tx', st, tx })
   }
 
+  /** Whole ledger as CSV for Excel (open to every signed-in user, like the page itself). */
+  async export({ response }: HttpContext) {
+    const st = await loadState()
+    const names = new Map(st.investors.map((i) => [i.id, i.name]))
+    const rows: (string | number)[][] = [['شناسه', 'تاریخ شمسی', 'تاریخ میلادی', 'سرمایه‌گذار', 'نوع', 'ماهیت', 'مبلغ (ریال)', 'NAV', 'واحد', 'شناسه گروه', 'توضیح']]
+    for (const t of st.txs) {
+      rows.push([
+        t.id, toJalaliStr(t.occurredOn), t.occurredOn, names.get(t.investorId) ?? '', t.type === 'issue' ? 'صدور' : 'ابطال',
+        t.kind === 'fee' ? 'کارمزد (صدور واحد)' : 'عادی', t.amount, t.nav, t.units, t.batchId ?? '', t.note ?? '',
+      ])
+    }
+    response.header('Content-Type', 'text/csv; charset=utf-8')
+    response.header('Content-Disposition', `attachment; filename="ledger-${todayIso()}.csv"`)
+    return response.send(toCsv(rows))
+  }
+
   async store({ request, response, session, auth }: HttpContext) {
     const d = await request.validateUsing(transactionValidator)
     const st = await loadState()
@@ -35,15 +54,16 @@ export default class TransactionsController {
     const units = d.amount / nav
     const cand: LedgerTx = { id: 1e9, investorId: d.investorId, type: d.type, amount: Math.round(d.amount), nav, units, occurredOn: date, note: null, batchId: null, kind: 'normal' }
     if (!ledgerOk(st, [...st.txs, cand])) return this.fail(session, response, 'واحدهای کافی برای این ابطال در آن تاریخ وجود ندارد.', '/transactions')
-    await Transaction.create({
+    const created = await Transaction.create({
       investorId: d.investorId, type: d.type, amount: Math.round(d.amount), nav, units,
       occurredOn: date, note: d.note ?? null, createdBy: auth.user!.id,
     })
+    await audit.change({ auth, request }, { action: 'transaction.create', entity: 'transaction', entityId: created.id, after: created.serialize() })
     session.flash('ok', 'تراکنش ثبت شد.')
     return response.redirect('/transactions')
   }
 
-  async update({ request, params, response, session }: HttpContext) {
+  async update({ request, params, response, session, auth }: HttpContext) {
     const d = await request.validateUsing(transactionValidator)
     const st = await loadState()
     const old = st.txs.find((t) => t.id === Number(params.id))
@@ -63,13 +83,15 @@ export default class TransactionsController {
       return this.fail(session, response, 'با این تغییر، واحدهای یک سرمایه‌گذار منفی می‌شود.', back)
     }
     const row = await Transaction.findOrFail(old.id)
+    const before = row.serialize()
     row.merge({ investorId: d.investorId, type: d.type, amount: Math.round(d.amount), nav, units, occurredOn: date, note: d.note ?? null })
     await row.save()
+    await audit.change({ auth, request }, { action: 'transaction.update', entity: 'transaction', entityId: row.id, before, after: row.serialize() })
     session.flash('ok', 'تراکنش ویرایش شد.')
     return response.redirect('/transactions')
   }
 
-  async destroy({ params, response, session }: HttpContext) {
+  async destroy({ params, request, response, session, auth }: HttpContext) {
     const st = await loadState()
     const old = st.txs.find((t) => t.id === Number(params.id))
     if (!old) return this.fail(session, response, 'تراکنش پیدا نشد.', '/transactions')
@@ -79,7 +101,10 @@ export default class TransactionsController {
     if (!ledgerOk(st, st.txs.filter((t) => t.id !== old.id))) {
       return this.fail(session, response, 'با حذف این تراکنش، واحدهای یک سرمایه‌گذار منفی می‌شود.', '/transactions')
     }
-    await (await Transaction.findOrFail(old.id)).delete()
+    const row = await Transaction.findOrFail(old.id)
+    const before = row.serialize()
+    await row.delete()
+    await audit.change({ auth, request }, { action: 'transaction.delete', entity: 'transaction', entityId: old.id, before })
     session.flash('ok', 'تراکنش حذف شد.')
     return response.redirect('/transactions')
   }

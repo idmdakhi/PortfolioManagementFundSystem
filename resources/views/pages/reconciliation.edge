@@ -1,0 +1,25 @@
+@include('partials/head')
+<div class="card"><h2>تطبیق مالی</h2>
+<div class="sub">این صفحه فقط گزارش می‌دهد و هیچ مقداری را خودکار تغییر نمی‌دهد. «خطا» جلوی بستن دوره را می‌گیرد؛ «هشدار» نیاز به نگاه دارد ولی ممکن است عمدی باشد.</div>
+<p>
+<b class="{{ rec.errors > 0 ? 'neg' : 'pos' }}">{{ rec.errors > 0 ? fa(rec.errors) + ' خطا' : 'بدون خطا' }}</b>
+{{ rec.warnings > 0 ? ' — ' + fa(rec.warnings) + ' هشدار' : '' }}
+</p>
+<table><tr><th>بررسی</th><th>وضعیت</th><th>جزئیات</th></tr>
+@each(c in rec.checks)
+<tr>
+<td>{{ c.title }}</td>
+<td class="{{ c.level == 'ok' ? 'pos' : (c.level == 'error' ? 'neg' : '') }}"><b>{{ c.level == 'ok' ? 'سالم' : (c.level == 'warning' ? 'هشدار' : 'خطا') }}</b></td>
+<td>{{ c.detail }}
+@if(c.items.length)
+<ul>
+@each(item in c.items)
+<li>{{ item }}</li>
+@end
+</ul>
+@end
+</td>
+</tr>
+@end
+</table></div>
+@include('partials/foot')

@@ -4,6 +4,7 @@ import type { Config } from '@japa/runner/types'
 import { pluginAdonisJS } from '@japa/plugin-adonisjs'
 import testUtils from '@adonisjs/core/services/test_utils'
 import { browserClient } from '@japa/browser-client'
+import { rmSync } from 'node:fs'
 import { authBrowserClient } from '@adonisjs/auth/plugins/browser_client'
 import { sessionBrowserClient } from '@adonisjs/session/plugins/browser_client'
 
@@ -40,6 +41,14 @@ export const runnerHooks: Required<Pick<Config, 'setup' | 'teardown'>> = {
  * Learn more - https://japa.dev/docs/test-suites#lifecycle-hooks
  */
 export const configureSuite: Config['configureSuite'] = (suite) => {
+  if (suite.name === 'integration') {
+    // Fresh private database for every run (DB_PATH comes from .env.test); never the real one.
+    suite.setup(async () => {
+      if (!String(process.env.DB_PATH ?? '').includes('test')) throw new Error('Refusing to run integration tests: DB_PATH is not a test database')
+      rmSync(app.makePath(String(process.env.DB_PATH)), { force: true })
+      await testUtils.db().migrate()
+    })
+  }
   if (['browser', 'functional', 'e2e'].includes(suite.name)) {
     return suite.setup(() => testUtils.httpServer().start())
   }

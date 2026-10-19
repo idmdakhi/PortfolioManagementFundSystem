@@ -8,6 +8,7 @@ import { loadState, ledgerOk, areaLedgerOk, type LedgerTx, type AreaMove } from 
 import { parseJalali, todayIso, todayJalali } from '#services/jalali'
 import { canEdit, reportOf, NOT_EDITABLE } from '#services/period_guard'
 import { splitAmount, type SplitMode } from '#services/splitter'
+import { audit } from '#services/audit'
 
 /** A place money can come from / go to: the fund, an investment area, or outside the system. */
 type Place = { kind: 'fund' } | { kind: 'external'; value: string } | { kind: 'area'; id: number }
@@ -151,12 +152,16 @@ export default class MovementsController {
       }
     })
     const total = split.amounts.reduce((a, v) => a + v, 0)
+    await audit.change(
+      { auth, request },
+      { action: 'movement.create', entity: 'movement', entityId: batchId, after: { from: refOf(from), to: refOf(to), method: method.value, date, investors: ids, amounts: split.amounts, total } }
+    )
     session.flash('ok', `حرکت برای ${ids.length} نفر و جمع ${Math.round(total).toLocaleString('fa-IR')} ریال ثبت شد.`)
     return response.redirect('/movements')
   }
 
   /** Deletes a whole group (fund transactions and area entries together). */
-  async destroy({ params, response, session }: HttpContext) {
+  async destroy({ params, request, response, session, auth }: HttpContext) {
     const st = await loadState()
     const id = String(params.batch)
     const fail = (msg: string) => {
@@ -171,11 +176,13 @@ export default class MovementsController {
     }
     if (!ledgerOk(st, st.txs.filter((t) => t.batchId !== id))) return fail('با حذف این گروه، واحدهای یک سرمایه‌گذار منفی می‌شود.')
     if (!areaLedgerOk(st.areaEntries.filter((e) => e.batchId !== id))) return fail('با حذف این گروه، موجودی یک حوزه منفی می‌شود.')
+    const before = { transactions: gTx, areaEntries: gEn, meta: await Movement.findBy('batchId', id).then((m) => m?.serialize() ?? null) }
     await db.transaction(async (trx) => {
       await trx.from('transactions').where('batch_id', id).delete()
       await trx.from('area_entries').where('batch_id', id).delete()
       await trx.from('movements').where('batch_id', id).delete()
     })
+    await audit.change({ auth, request }, { action: 'movement.delete', entity: 'movement', entityId: id, before })
     session.flash('ok', 'گروه حذف شد.')
     return response.redirect('/movements')
   }

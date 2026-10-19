@@ -50,4 +50,7 @@ export const middleware = router.named({
   guest: () => import('#middleware/guest_middleware'),
   auth: () => import('#middleware/auth_middleware'),
   role: () => import('#middleware/role_middleware'),
+  audit: () => import('#middleware/audit_middleware'),
+  writeLock: () => import('#middleware/write_lock_middleware'),
+  dedupe: () => import('#middleware/dedupe_middleware'),
 })

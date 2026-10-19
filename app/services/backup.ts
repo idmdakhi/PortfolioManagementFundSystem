@@ -7,10 +7,12 @@ export const VERSION = 1
 export const TABLES = [
   'periods', 'investors', 'history_periods', 'areas',
   'personal_accounts', 'dividends', 'transactions', 'area_entries',
-  'options', 'movements',
+  'options', 'movements', 'fee_receipts', 'valuations',
 ] as const
+/** If a (older) backup has no such table, the current rows are removed so the stored legacy values apply. */
+export const CLEAR_IF_ABSENT = new Set<string>(['valuations'])
 /** Older backup files may not have these; when absent the current rows are left untouched. */
-export const OPTIONAL = new Set<string>(['options', 'movements'])
+export const OPTIONAL = new Set<string>(['options', 'movements', 'fee_receipts', 'valuations'])
 
 export async function exportAll() {
   const tables: Record<string, unknown[]> = {}
@@ -52,7 +54,7 @@ export async function importAll(data: { tables: Record<string, Record<string, un
 
   await db.transaction(async (trx) => {
     const present = TABLES.filter((t) => Array.isArray(data.tables[t]))
-    for (const t of [...present].reverse()) await trx.from(t).delete()
+    for (const t of [...TABLES].reverse()) if (Array.isArray(data.tables[t]) || CLEAR_IF_ABSENT.has(t)) await trx.from(t).delete()
     for (const t of present) {
       const cols = allowed.get(t)!
       const rows = data.tables[t].map((r) => Object.fromEntries(Object.entries(r).filter(([k]) => cols.has(k))))

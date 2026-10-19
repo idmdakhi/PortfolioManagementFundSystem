@@ -17,7 +17,14 @@
 <div><label>برچسب دوره</label><input name="label"  value="{{ rep.period.label }}" required></div><div><label>شروع (شمسی)</label><input name="startJalali" dir="ltr" value="{{ jraw(rep.period.startOn) }}" required></div><div><label>پایان (شمسی)</label><input name="endJalali" dir="ltr" value="{{ jraw(rep.period.endOn) }}" required></div><div><label>تعداد ماه دوره</label><input name="months" inputmode="decimal" value="{{ rep.period.months }}" required></div><div><label>ارزش روز ابتدای دوره</label><input name="beginMarket" class="money" inputmode="numeric" value="{{ money(rep.period.beginMarket) }}" required></div><div><label>واریز ثبت‌شده پیش از سیستم</label><input name="openingDeposits" class="money" inputmode="numeric" value="{{ money(rep.period.openingDeposits) }}" required></div><div><label>برداشت ثبت‌شده پیش از سیستم</label><input name="openingWithdrawals" class="money" inputmode="numeric" value="{{ money(rep.period.openingWithdrawals) }}" required></div><div><label>سود ثابت مشتری و صندوق = سود بانکی (٪ سالانه)</label><input name="fixedRate" inputmode="decimal" value="{{ rep.period.fixedRate }}" required></div><div><label>کارمزد ثابت صندوق (٪)</label><input name="mgmtRate" inputmode="decimal" value="{{ rep.period.mgmtRate }}" required></div><div><label>سهم از مازاد صندوق (٪)</label><input name="excessRate" inputmode="decimal" value="{{ rep.period.excessRate }}" required></div><div><label>سقف کارمزد (ده میلیون ریال)</label><input name="feeCap" inputmode="decimal" value="{{ rep.period.feeCap }}" required></div><div><label>تخفیف و اصلاحات</label><input name="discount" class="money" inputmode="numeric" value="{{ money(rep.period.discount) }}" required></div><div><label>کارمزد ثابت حساب شخصی (٪ سالانه)</label><input name="mgmtRate2" inputmode="decimal" value="{{ rep.period.mgmtRate2 }}" required></div><div><label>سهم از مازاد حساب شخصی (٪)</label><input name="excessRate2" inputmode="decimal" value="{{ rep.period.excessRate2 }}" required></div>
 </div><p><button>ذخیره</button></p></form></div>
 <div class="card"><h2>بستن دوره</h2><form method="POST" action="/settings/close" data-confirm="دورهٔ {{ rep.period.label }} بسته شود؟ تراکنش‌های آن قفل می‌شوند.">{{ csrfField() }}
-<div class="sub">ارزش روز فعلی به‌عنوان ارزش پایانی ثبت می‌شود و دورهٔ بعد با همین ارزش شروع می‌شود. پیش از بستن، ارزش‌گذاری پایان دوره را وارد کنید.</div><p><button class="danger">بستن دوره و شروع دورهٔ بعد</button></p></form></div>
+<div class="sub">ارزش روز فعلی به‌عنوان ارزش پایانی ثبت می‌شود و دورهٔ بعد با همین ارزش شروع می‌شود. پیش از بستن، ارزش‌گذاری پایان دوره را وارد کنید.</div>
+@if(rec.errors > 0)
+<div class="flash err">{{ fa(rec.errors) }} خطای تطبیق مالی وجود دارد؛ تا رفع آن، دوره بسته نمی‌شود (<a href="/reconciliation">مشاهدهٔ خطاها</a>).
+<label><input type="checkbox" name="force" style="width:auto"> با آگاهی از خطاها ببند (در سابقه ثبت می‌شود)</label></div>
+@else
+<div class="sub">تطبیق مالی: <span class="pos">بدون خطا</span> (<a href="/reconciliation">جزئیات</a>)</div>
+@end
+<p><button class="danger">بستن دوره و شروع دورهٔ بعد</button></p></form></div>
 @else
 <div class="card">دورهٔ بازی وجود ندارد.</div>
 @end

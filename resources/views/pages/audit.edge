@@ -1,0 +1,43 @@
+@include('partials/head')
+<div class="card"><h2>سابقهٔ حسابرسی</h2>
+<div class="sub">هر درخواست ثبت‌کنندهٔ داده با کاربر و آی‌پی، و مقدار قبل و بعد هر تغییر مالی. این سابقه در فایل پشتیبان نیست و با بازیابی پشتیبان پاک نمی‌شود.</div>
+<form method="GET" action="/audit"><div class="g">
+<div><label>نوع</label><select name="kind"><option value="">همه</option><option value="change" {{ kind == 'change' ? 'selected' : '' }}>تغییر مالی (قبل/بعد)</option><option value="request" {{ kind == 'request' ? 'selected' : '' }}>درخواست</option></select></div>
+<div><label>نتیجه</label><select name="outcome"><option value="">همه</option><option value="ok" {{ outcome == 'ok' ? 'selected' : '' }}>موفق</option><option value="rejected" {{ outcome == 'rejected' ? 'selected' : '' }}>ردشده</option><option value="invalid" {{ outcome == 'invalid' ? 'selected' : '' }}>ورودی نامعتبر</option><option value="error" {{ outcome == 'error' ? 'selected' : '' }}>خطا</option><option value="blocked" {{ outcome == 'blocked' ? 'selected' : '' }}>مسدود</option></select></div>
+<div><label>جست‌وجو (عملیات، مسیر، ایمیل، شناسه)</label><input name="q" value="{{ q }}"></div>
+</div><p><button class="sm">اعمال فیلتر</button></p></form>
+<div class="sub">{{ fa(total) }} ردیف — صفحهٔ {{ fa(page) }} از {{ fa(pages) }}</div>
+<table><tr><th>زمان</th><th>کاربر</th><th>عملیات</th><th>موضوع</th><th>نتیجه</th><th>جزئیات</th></tr>
+@each(r in rows)
+<tr>
+<td dir="ltr">{{ jd(r.createdAt.toISODate()) }} {{ r.createdAt.toFormat('HH:mm:ss') }}</td>
+<td>{{ r.userEmail || '—' }}<div class="sub" dir="ltr">{{ r.ip || '' }}</div></td>
+<td dir="ltr">{{ r.action }}</td>
+<td dir="ltr">{{ r.entity ? r.entity + ' #' + r.entityId : '' }}</td>
+<td>{{ r.outcome || '' }}</td>
+<td>
+@if(r.before || r.after || r.detail)
+<details><summary>نمایش</summary>
+@if(r.before)
+<div class="sub">قبل</div><pre dir="ltr">{{ r.before }}</pre>
+@end
+@if(r.after)
+<div class="sub">بعد</div><pre dir="ltr">{{ r.after }}</pre>
+@end
+@if(r.detail)
+<div class="sub">ورودی</div><pre dir="ltr">{{ r.detail }}</pre>
+@end
+</details>
+@end
+</td></tr>
+@end
+</table>
+<p>
+@if(page > 1)
+<a class="btn sm" href="/audit?kind={{ kind }}&outcome={{ outcome }}&q={{ encodeURIComponent(q) }}&page={{ page - 1 }}">قبلی</a>
+@end
+@if(page < pages)
+<a class="btn sm" href="/audit?kind={{ kind }}&outcome={{ outcome }}&q={{ encodeURIComponent(q) }}&page={{ page + 1 }}">بعدی</a>
+@end
+</p></div>
+@include('partials/foot')

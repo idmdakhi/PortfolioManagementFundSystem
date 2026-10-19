@@ -5,6 +5,7 @@
 
 export const controllers = {
   Areas: () => import('#controllers/areas_controller'),
+  Audit: () => import('#controllers/audit_controller'),
   Auth: () => import('#controllers/auth_controller'),
   Backup: () => import('#controllers/backup_controller'),
   Dashboard: () => import('#controllers/dashboard_controller'),
@@ -17,6 +18,7 @@ export const controllers = {
   Options: () => import('#controllers/options_controller'),
   Periods: () => import('#controllers/periods_controller'),
   Personal: () => import('#controllers/personal_controller'),
+  Reconciliation: () => import('#controllers/reconciliation_controller'),
   Settings: () => import('#controllers/settings_controller'),
   Transactions: () => import('#controllers/transactions_controller'),
   Valuations: () => import('#controllers/valuations_controller'),

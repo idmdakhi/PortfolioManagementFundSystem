@@ -173,3 +173,75 @@ test.group('splitAmount: weights and rounding', () => {
     assert.property(splitAmount('weight', 1000, [1, -1]), 'error')
   })
 })
+
+test.group('fee settlement', () => {
+  const base = { ...p, beginMarket: 28748892884, deposits: 0, withdrawals: 0, dividends: 0, marketValue: 28748892884 }
+  const u = units
+
+  test('issuing units to the manager for the fee keeps the NAV unchanged', ({ assert }) => {
+    const before = fundSummary(base, u)
+    const a = 10000000
+    const newUnits = a / before.nav
+    const after = fundSummary({ ...base, feeUnits: a }, u + newUnits)
+    assert.approximately(after.nav, before.nav, 1e-9)
+    assert.equal(after.fee, before.fee)
+    assert.equal(after.feeRemaining, before.fee - a)
+  })
+
+  test('paying the fee in cash keeps NAV, fee and gross profit unchanged', ({ assert }) => {
+    const before = fundSummary(base, u)
+    const a = 10000000
+    const after = fundSummary({ ...base, marketValue: base.marketValue - a, feePaidCash: a }, u)
+    assert.approximately(after.nav, before.nav, 1e-9)
+    assert.equal(after.fee, before.fee)
+    assert.equal(after.gross, before.gross)
+    assert.equal(after.feeRemaining, before.fee - a)
+  })
+
+  test('investor nets still add up to the fund profit when units are issued for the fee', ({ assert }) => {
+    const a = 10000000
+    const nav = fundSummary(base, u).nav
+    const mgrUnits = a / nav
+    const total = u + mgrUnits
+    const s = fundSummary({ ...base, feeUnits: a }, total)
+    const holders = [{ units: 300000, dep: 6e9 }, { units: u - 300000, dep: base.marketValue - 6e9 - 0 }]
+    let sum = holders.reduce((acc, h) => acc + fundAccount({ unitsEnd: h.units, beginValue: 0, deposits: h.dep, withdrawals: 0, dividends: 0 }, s, total, p).net, 0)
+    sum += fundAccount({ unitsEnd: mgrUnits, beginValue: 0, deposits: a, withdrawals: 0, dividends: 0 }, s, total, p).net
+    // fund profit = gross - fee; the manager's fee units are carried as his capital, so the identity holds
+    assert.approximately(sum, s.profit, 1e-3)
+    assert.approximately(sum, s.marketValue0 - base.beginMarket - s.fee, 1e-3)
+  })
+})
+
+import { baseline } from '#services/valuation'
+
+test.group('valuation ledger baseline', () => {
+  const period = { startOn: '2026-03-21', endOn: '2027-03-20', marketValueBase: 111, valuationOn: '2026-03-20' }
+  test('falls back to the stored legacy value without entries', ({ assert }) => {
+    const b = baseline(period, [])
+    assert.equal(b.value, 111)
+    assert.equal(b.source, 'legacy')
+  })
+  test('uses the latest entry inside the period, ignoring other periods', ({ assert }) => {
+    const b = baseline(period, [
+      { id: 1, occurredOn: '2025-03-21', marketValue: 1, kind: 'open' },
+      { id: 2, occurredOn: '2026-03-21', marketValue: 500, kind: 'open' },
+      { id: 3, occurredOn: '2026-06-01', marketValue: 700, kind: 'value' },
+      { id: 4, occurredOn: '2026-09-01', marketValue: 900, kind: 'value' },
+    ])
+    assert.equal(b.value, 900)
+    assert.equal(b.effDate, '2026-09-01')
+    assert.equal(b.source, 'ledger')
+  })
+  test('an opening entry counts as of the day before the period, so first-day flows are included', ({ assert }) => {
+    const b = baseline(period, [{ id: 1, occurredOn: '2026-03-21', marketValue: 500, kind: 'open' }])
+    assert.equal(b.effDate, '2026-03-20')
+  })
+  test('same-day entries: the later id wins', ({ assert }) => {
+    const b = baseline(period, [
+      { id: 5, occurredOn: '2026-06-01', marketValue: 10, kind: 'value' },
+      { id: 6, occurredOn: '2026-06-01', marketValue: 20, kind: 'value' },
+    ])
+    assert.equal(b.value, 20)
+  })
+})

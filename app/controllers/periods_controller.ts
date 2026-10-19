@@ -6,9 +6,11 @@ import Valuation from '#models/valuation'
 import { bankRate } from '#services/options'
 import db from '@adonisjs/lucid/services/db'
 import { loadState } from '#services/fund_state'
-import { addDays, jalaliYear, yearRange, parseJalali } from '#services/jalali'
+import { addDays, jalaliYear, yearRange, parseJalali, todayIso } from '#services/jalali'
 import { periodEditValidator } from '#validators/fund'
 import { syncLegacy, ensureLedger } from '#controllers/valuations_controller'
+import { reconcile } from '#services/reconcile'
+import { audit } from '#services/audit'
 
 export default class PeriodsController {
   async index({ view }: HttpContext) {
@@ -16,11 +18,20 @@ export default class PeriodsController {
   }
 
   /** Closes the open period and opens the next one, carrying values forward. */
-  async close({ response, session }: HttpContext) {
+  async close({ request, response, session, auth }: HttpContext) {
     const st = await loadState()
     const rep = st.current
     if (!rep || rep.period.status !== 'open') {
       session.flash('error', 'دورهٔ بازی وجود ندارد.')
+      return response.redirect('/settings')
+    }
+    // Policy (docs/Ledger.md): a period with an unresolved reconciliation error is not closed.
+    // The admin can knowingly override with «force»; the override is written to the audit trail.
+    const rec = reconcile(st, todayIso())
+    const forced = !rec.ok && request.input('force') === 'on'
+    if (!rec.ok && !forced) {
+      const titles = rec.checks.filter((c) => c.level === 'error').map((c) => c.title).join('؛ ')
+      session.flash('error', `بستن دوره رد شد؛ ${rec.errors.toLocaleString('fa-IR')} خطای تطبیق وجود دارد: ${titles}. صفحهٔ «تطبیق» را ببینید.`)
       return response.redirect('/settings')
     }
     const closing = rep.period
@@ -67,6 +78,14 @@ export default class PeriodsController {
         )
       }
     })
+    await audit.change(
+      { auth, request },
+      {
+        action: forced ? 'period.close.forced' : 'period.close', entity: 'period', entityId: closing.id,
+        before: { status: 'open' }, after: { status: 'closed', marketValue: Math.round(rep.params.marketValue), feeSettled: feeLeft, nextOpeningValue: mv },
+        detail: forced ? { overriddenErrors: rec.checks.filter((c) => c.level === 'error').map((c) => ({ id: c.id, items: c.items })) } : undefined,
+      }
+    )
     session.flash('ok', 'دوره بسته شد و دورهٔ جدید باز شد. ارزش روز را به‌روز کنید.')
     return response.redirect('/settings')
   }
@@ -108,7 +127,7 @@ export default class PeriodsController {
     return view.render('pages/period_edit', { nav: 'pl', st, rep })
   }
 
-  async update({ request, params, response, session }: HttpContext) {
+  async update({ request, params, response, session, auth }: HttpContext) {
     const { closeValue, startJalali, endJalali, ...d } = await request.validateUsing(periodEditValidator)
     const st = await loadState()
     const rep = st.reports.find((r) => r.period.id === Number(params.id))
@@ -128,8 +147,10 @@ export default class PeriodsController {
     await ensureLedger(period)
     const oldStart = period.startOn
     const oldEnd = period.endOn
+    const before = period.serialize()
     period.merge({ ...d, startOn, endOn })
     await period.save()
+    await audit.change({ auth, request }, { action: 'period.update', entity: 'period', entityId: period.id, before, after: period.serialize(), detail: closeValue !== undefined ? { closeValue } : undefined })
     // keep the ledger's opening / closing entries in line with the edited values
     const openE = await Valuation.query().where('kind', 'open').where('occurred_on', oldStart).first()
     if (openE) {
@@ -153,7 +174,7 @@ export default class PeriodsController {
     return response.redirect('/periods/manage')
   }
 
-  async destroy({ params, response, session }: HttpContext) {
+  async destroy({ params, request, response, session, auth }: HttpContext) {
     const st = await loadState()
     const rep = st.reports.find((r) => r.period.id === Number(params.id))
     const fail = (m: string) => {
@@ -170,12 +191,13 @@ export default class PeriodsController {
       await trx.from('personal_accounts').where('period_id', rep.period.id).delete()
       await trx.from('periods').where('id', rep.period.id).delete()
     })
+    await audit.change({ auth, request }, { action: 'period.delete', entity: 'period', entityId: rep.period.id, before: rep.period.serialize() })
     session.flash('ok', 'دوره حذف شد.')
     return response.redirect('/periods/manage')
   }
 
   /** Re-derives the next period's opening values from this period's (edited) closing values. */
-  async carry({ params, response, session }: HttpContext) {
+  async carry({ params, request, response, session, auth }: HttpContext) {
     const st = await loadState()
     const idx = st.reports.findIndex((r) => r.period.id === Number(params.id))
     const fail = (m: string) => {
@@ -188,6 +210,7 @@ export default class PeriodsController {
     const feeLeft = Math.max(0, Math.round(rep.summary.feeRemaining))
     const mv = Math.round(rep.params.marketValue) - feeLeft
     await ensureLedger(next)
+    const beforeBegin = Number(next.beginMarket)
     next.beginMarket = mv
     await next.save()
     const openE = await Valuation.query().where('kind', 'open').where('occurred_on', next.startOn).first()
@@ -206,6 +229,7 @@ export default class PeriodsController {
       if (untouched) nrow.marketValue = carry
       await nrow.save()
     }
+    await audit.change({ auth, request }, { action: 'period.carry', entity: 'period', entityId: next.id, before: { beginMarket: beforeBegin }, after: { beginMarket: mv } })
     session.flash('ok', `ارزش ابتدای دورهٔ ${next.label} از روی دورهٔ ${rep.period.label} به‌روز شد.`)
     return response.redirect('/periods/manage')
   }

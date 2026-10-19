@@ -82,6 +82,11 @@ export default defineConfig({
         timeout: 2000,
       },
       {
+        files: ['tests/integration/**/*.spec.ts'],
+        name: 'integration',
+        timeout: 20000,
+      },
+      {
         files: ['tests/browser/**/*.spec.ts'],
         name: 'browser',
         timeout: 300000,
