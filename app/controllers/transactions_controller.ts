@@ -71,7 +71,7 @@ export default class TransactionsController {
     if (!old) return this.fail(session, response, 'تراکنش پیدا نشد.', '/transactions')
     if (old.batchId) return this.fail(session, response, 'این تراکنش بخشی از یک حرکت گروهی است؛ فقط کل گروه قابل حذف است.', '/transactions')
     if (old.kind === 'fee') return this.fail(session, response, 'این تراکنش انتقال کارمزد است؛ از صفحهٔ «کارمزدها» حذف می‌شود.', '/transactions')
-    if (!canEdit(st, old.occurredOn)) return this.fail(session, response, 'این تراکنش در دورهٔ بسته است. برای ویرایش، «ویرایش دوره‌های بسته» را در تنظیمات روشن کنید.', '/transactions')
+    if (!canEdit(st, old.occurredOn)) return this.fail(session, response, 'این تراکنش در دورهٔ بسته است و قفل شده.', '/transactions')
     const date = d.occurredOn ? parseJalali(d.occurredOn) : old.occurredOn
     if (!date) return this.fail(session, response, 'تاریخ شمسی معتبر نیست (مثال: ۱۴۰۵/۰۷/۲۱).', back)
     if (!canEdit(st, date)) return this.fail(session, response, NOT_EDITABLE, back)
@@ -97,7 +97,7 @@ export default class TransactionsController {
     if (!old) return this.fail(session, response, 'تراکنش پیدا نشد.', '/transactions')
     if (old.batchId) return this.fail(session, response, 'این تراکنش بخشی از یک حرکت گروهی است؛ فقط کل گروه قابل حذف است.', '/transactions')
     if (old.kind === 'fee') return this.fail(session, response, 'این تراکنش انتقال کارمزد است؛ از صفحهٔ «کارمزدها» حذف می‌شود.', '/transactions')
-    if (!canEdit(st, old.occurredOn)) return this.fail(session, response, 'این تراکنش در دورهٔ بسته است. برای حذف، «ویرایش دوره‌های بسته» را در تنظیمات روشن کنید.', '/transactions')
+    if (!canEdit(st, old.occurredOn)) return this.fail(session, response, 'این تراکنش در دورهٔ بسته است و قفل شده.', '/transactions')
     if (!ledgerOk(st, st.txs.filter((t) => t.id !== old.id))) {
       return this.fail(session, response, 'با حذف این تراکنش، واحدهای یک سرمایه‌گذار منفی می‌شود.', '/transactions')
     }

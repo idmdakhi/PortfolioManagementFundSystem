@@ -6,24 +6,35 @@ import Option from '#models/option'
 import { loadState, ledgerOk, type State } from '#services/fund_state'
 import { parseJalali, todayIso, todayJalali } from '#services/jalali'
 import { invalidateOptions, managerInvestorId } from '#services/options'
-import { canEdit } from '#services/period_guard'
+import { canEdit, CLOSED_LOCKED } from '#services/period_guard'
 import { audit } from '#services/audit'
 
 const num = (v: unknown) => Number(v)
 /** The manager investor: the saved setting, else the investor named «خودم». */
 const managerOf = (st: State) => managerInvestorId() ?? st.investors.find((i) => i.name === 'خودم')?.id ?? null
 
+/** Fund fees and personal-account fees live on separate pages. */
+const homeOf = (scope: string) => (scope === 'personal' ? '/personal/fees' : '/fees')
+
 export default class FeesController {
-  async index({ view, request }: HttpContext) {
+  async index(ctx: HttpContext) {
+    return this.list(ctx, 'fund')
+  }
+
+  async personalIndex(ctx: HttpContext) {
+    return this.list(ctx, 'personal')
+  }
+
+  private async list({ view, request }: HttpContext, scope: 'fund' | 'personal') {
     const st = await loadState()
     const pid = Number(request.input('p'))
     const rep = st.reports.find((r) => r.period.id === pid) ?? st.current
     const names = new Map(st.investors.map((i) => [i.id, i.name]))
     const mid = managerOf(st)
     const label = (iso: string) => st.reports.find((r) => iso >= r.period.startOn && iso <= r.period.endOn)?.period.label ?? '—'
-    const list = [...st.fees].reverse().map((f) => ({ ...f, periodLabel: label(f.occurredOn) }))
-    return view.render('pages/fees', {
-      nav: 'fee', st, rep, names, list, today: todayJalali(),
+    const list = st.fees.filter((f) => f.scope === scope).reverse().map((f) => ({ ...f, periodLabel: label(f.occurredOn), locked: !canEdit(st, f.occurredOn) }))
+    return view.render(scope === 'personal' ? 'pages/personal_fees' : 'pages/fees', {
+      nav: scope === 'personal' ? 'psf' : 'fee', st, rep, names, list, today: todayJalali(),
       managerId: mid, managerName: mid ? (names.get(mid) ?? '—') : '—',
     })
   }
@@ -31,18 +42,19 @@ export default class FeesController {
   /** Records a received fee (fund or personal); a fund fee can also be paid out in cash from the fund. */
   async store({ request, response, session, auth }: HttpContext) {
     const b = request.all()
+    const scope = b.scope === 'personal' ? 'personal' : 'fund'
     const fail = (m: string) => {
       session.flash('error', m)
-      return response.redirect('/fees')
+      return response.redirect(homeOf(scope))
     }
     const st = await loadState()
-    const scope = b.scope === 'personal' ? 'personal' : 'fund'
     const amount = Math.round(num(b.amount))
     if (!(amount > 0)) return fail('مبلغ را وارد کنید.')
     const date = b.occurredOn ? parseJalali(String(b.occurredOn)) : todayIso()
     if (!date) return fail('تاریخ شمسی معتبر نیست (مثال: ۱۴۰۵/۰۷/۲۱).')
     const rep = st.reports.find((r) => date >= r.period.startOn && date <= r.period.endOn)
     if (!rep) return fail('تاریخ باید داخل یکی از دوره‌های مالی باشد.')
+    if (!canEdit(st, date)) return fail(CLOSED_LOCKED)
     let investorId: number | null = null
     let method = 'record'
     if (scope === 'personal') {
@@ -50,7 +62,6 @@ export default class FeesController {
       if (!st.investors.some((i) => i.id === investorId)) return fail('برای کارمزد شخصی، سرمایه‌گذار را انتخاب کنید.')
     } else if (b.method === 'cash') {
       method = 'cash'
-      if (!canEdit(st, date)) return fail('پرداخت نقدی فقط در دورهٔ قابل ویرایش ممکن است. برای دورهٔ بسته از «ثبت سابقه» استفاده کنید.')
       if (amount > Math.round(rep.summary.feeRemaining)) return fail(`مبلغ بیشتر از کارمزد باقی‌مانده است (${Math.round(rep.summary.feeRemaining).toLocaleString('fa-IR')} ریال).`)
     }
     const created = await FeeReceipt.create({
@@ -58,7 +69,7 @@ export default class FeesController {
     })
     await audit.change({ auth, request }, { action: 'fee.create', entity: 'fee_receipt', entityId: created.id, after: created.serialize() })
     session.flash('ok', 'کارمزد دریافتی ثبت شد.')
-    return response.redirect('/fees')
+    return response.redirect(homeOf(scope))
   }
 
   /** Moves (part of) the owed fund fee to the manager by issuing fund units at the current NAV. */
@@ -122,13 +133,10 @@ export default class FeesController {
     const f = st.fees.find((x) => x.id === Number(params.id))
     const fail = (m: string) => {
       session.flash('error', m)
-      return response.redirect('/fees')
+      return response.redirect(homeOf(f?.scope ?? 'fund'))
     }
     if (!f) return fail('مورد پیدا نشد.')
-    const affectsMath = f.method === 'cash' || f.method === 'units'
-    if (affectsMath && !canEdit(st, f.occurredOn)) {
-      return fail('این مورد در دورهٔ بسته است و قابل حذف نیست.')
-    }
+    if (!canEdit(st, f.occurredOn)) return fail(CLOSED_LOCKED)
     if (f.method === 'units' && f.txId) {
       if (!ledgerOk(st as State, st.txs.filter((t) => t.id !== f.txId))) return fail('با حذف این مورد، واحدهای سبدگردان منفی می‌شود.')
     }
@@ -138,7 +146,7 @@ export default class FeesController {
     })
     await audit.change({ auth, request }, { action: 'fee.delete', entity: 'fee_receipt', entityId: f.id, before: { receipt: f, tx: f.txId ? st.txs.find((t) => t.id === f.txId) : null } })
     session.flash('ok', 'حذف شد.')
-    return response.redirect('/fees')
+    return response.redirect(homeOf(f.scope))
   }
 
   async edit({ view, params, response, session }: HttpContext) {
@@ -148,7 +156,11 @@ export default class FeesController {
       session.flash('error', 'فقط «ثبت سابقه» و «تسویهٔ پایان دوره» قابل ویرایش‌اند. پرداخت نقدی و صدور واحد را حذف و دوباره ثبت کنید.')
       return response.redirect('/fees')
     }
-    return view.render('pages/fee_edit', { nav: 'fee', st, f })
+    if (!canEdit(st, f.occurredOn)) {
+      session.flash('error', CLOSED_LOCKED)
+      return response.redirect(homeOf(f.scope))
+    }
+    return view.render('pages/fee_edit', { nav: f.scope === 'personal' ? 'psf' : 'fee', st, f, base: homeOf(f.scope) })
   }
 
   async update({ request, params, response, session, auth }: HttpContext) {
@@ -161,12 +173,14 @@ export default class FeesController {
       return response.redirect(to)
     }
     if (!f || (f.method !== 'record' && f.method !== 'settle')) return fail('مورد پیدا نشد.', '/fees')
+    if (!canEdit(st, f.occurredOn)) return fail(CLOSED_LOCKED, homeOf(f.scope))
     const amount = Math.round(num(b.amount))
     if (!(amount > 0)) return fail('مبلغ را وارد کنید.')
     const date = b.occurredOn ? parseJalali(String(b.occurredOn)) : f.occurredOn
     if (!date) return fail('تاریخ شمسی معتبر نیست.')
-    if (!st.reports.some((r) => date >= r.period.startOn && date <= r.period.endOn)) return fail('تاریخ باید داخل یکی از دوره‌های مالی باشد.')
-    const scope = b.scope === 'personal' ? 'personal' : 'fund'
+    if (!canEdit(st, date)) return fail(CLOSED_LOCKED)
+    // A receipt never moves between the fund and a personal account: the saved scope stays.
+    const scope = f.scope
     let investorId: number | null = null
     if (scope === 'personal') {
       investorId = num(b.investorId)
@@ -178,6 +192,6 @@ export default class FeesController {
     await row.save()
     await audit.change({ auth, request }, { action: 'fee.update', entity: 'fee_receipt', entityId: row.id, before, after: row.serialize() })
     session.flash('ok', 'ویرایش شد.')
-    return response.redirect('/fees')
+    return response.redirect(homeOf(scope))
   }
 }

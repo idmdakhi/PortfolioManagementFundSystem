@@ -1,0 +1,49 @@
+@include('partials/head')
+<h2>کارمزد حساب‌های شخصی</h2>
+<div class="sub">کارمزد حساب شخصی جدا از کارمزد صندوق است و فقط به‌صورت سابقه ثبت می‌شود؛ روی ارزش و NAV صندوق اثری ندارد.</div>
+<div class="chips">
+@each(r in st.reports)
+<a href="/personal/fees?p={{ r.period.id }}" class="{{ r.period.id == rep.period.id ? 'on' : '' }}">{{ r.period.label }}</a>
+@end
+</div>
+<div class="card sc"><h2>کارمزد هر حساب شخصی — دورهٔ {{ rep.period.label }}</h2>
+<table><tr><th>نام</th><th class="num">کارمزد محاسبه‌شده</th><th class="num">دریافت‌شده</th><th class="num">مانده</th></tr>
+@each(r in rep.rows)
+@if(r.personal)
+<tr><td>{{ r.name }}</td><td class="num">{{ fa(r.personal.fee) }}</td><td class="num">{{ fa(r.personalFeeReceived) }}</td><td class="num {{ cls(0 - (r.personal.fee - r.personalFeeReceived)) }}">{{ fa(r.personal.fee - r.personalFeeReceived) }}</td></tr>
+@end
+@end
+</table></div>
+
+@if(auth.user.role == 'admin')
+<div class="card"><h2>ثبت کارمزد دریافتی از حساب شخصی</h2>
+<form method="POST" action="/fees"><br>{{ csrfField() }}<input type="hidden" name="scope" value="personal"><div class="g">
+<div><label>سرمایه‌گذار</label><select name="investorId" required><option value="">—</option>
+@each(i in st.investors)
+<option value="{{ i.id }}">{{ i.name }}</option>
+@end
+</select></div>
+<div><label>مبلغ (ریال)</label><input class="money" inputmode="numeric" name="amount" required></div>
+<div><label>تاریخ شمسی</label><input name="occurredOn" dir="ltr" value="{{ today }}"></div>
+<div><label>یادداشت</label><input name="note"></div></div>
+<p><button>ثبت</button></p></form></div>
+@end
+
+<div class="card sc"><h2>کارمزدهای ثبت‌شدهٔ حساب‌های شخصی</h2>
+<table><tr><th>تاریخ</th><th>دوره</th><th>سرمایه‌گذار</th><th class="num">مبلغ</th><th>یادداشت</th><th></th></tr>
+@each(f in list)
+<tr><td>{{ jd(f.occurredOn) }}</td><td>{{ f.periodLabel }}</td><td>{{ f.investorId ? names.get(f.investorId) : '—' }}</td><td class="num">{{ fa(f.amount) }}</td><td>{{ f.note || '' }}</td>
+<td>
+@if(f.locked)
+<span class="sub">قفل (دورهٔ بسته)</span>
+@elseif(auth.user.role == 'admin')
+<div class="acts">
+<a class="btn sm o" href="/fees/{{ f.id }}/edit">ویرایش</a>
+<form method="POST" action="/fees/{{ f.id }}/delete" data-confirm="حذف شود؟">{{ csrfField() }}<button class="sm danger">حذف</button></form></div>
+@end
+</td></tr>
+@else
+<tr><td colspan="6" class="sub">هنوز کارمزدی ثبت نشده.</td></tr>
+@end
+</table></div>
+@include('partials/foot')

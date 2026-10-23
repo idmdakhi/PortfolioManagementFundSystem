@@ -153,7 +153,13 @@ export function reconcile(st: State, today: string, staleDays = 45): Reconciliat
     for (let i = 1; i < st.reports.length; i++) {
       const prev: Report = st.reports[i - 1]
       const cur: Report = st.reports[i]
-      const expect = Math.round(prev.params.marketValue) - Math.max(0, Math.round(prev.summary.feeRemaining))
+      // A closed period's fee is final: what was settled (deducted) when it closed is the 'settle' receipt in it.
+      // Only a period that is still open falls back to the live remaining fee.
+      const settled = st.fees
+        .filter((f) => f.scope === 'fund' && f.method === 'settle' && f.occurredOn >= prev.period.startOn && f.occurredOn <= prev.period.endOn)
+        .reduce((a, f) => a + f.amount, 0)
+      const carried = prev.period.status === 'closed' ? settled : Math.max(0, Math.round(prev.summary.feeRemaining))
+      const expect = Math.round(prev.params.marketValue) - carried
       const have = Number(cur.period.beginMarket)
       if (addDays(prev.period.endOn, 1) === cur.period.startOn && Math.abs(have - expect) > 1)
         bad.push(`دورهٔ ${cur.period.label}: ارزش ابتدا ${fmt(have)} ولی پایان دورهٔ ${prev.period.label} پس از کارمزد ${fmt(expect)} است`)

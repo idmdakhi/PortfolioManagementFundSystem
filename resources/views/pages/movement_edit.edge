@@ -1,0 +1,37 @@
+@include('partials/head')
+<div class="card"><h2>ویرایش حرکت گروهی</h2>
+<div class="sub">با ذخیره، مبلغ‌ها دوباره بین نفرات تقسیم می‌شود و تراکنش‌ها و ثبت‌های قبلیِ همین گروه با نسخهٔ جدید جایگزین می‌شوند. برای روش «مبلغ جداگانه» مبلغ هر نفر پر شده است؛ برای روش‌های درصدی و وزنی مقدارها را دوباره وارد کنید. فقط دورهٔ باز قابل ویرایش است.</div>
+<form method="POST" action="/movements/{{ m.batchId }}">{{ csrfField() }}<br><div class="g">
+<div><label>از (مبدأ)</label><select name="from">
+<option value="fund" {{ m.from == 'fund' ? 'selected' : '' }}>صندوق (ابطال واحد)</option>
+@each(a in st.areas)
+<option value="area:{{ a.id }}" {{ m.from == 'area:' + a.id ? 'selected' : '' }}>حوزه: {{ a.name }}</option>
+@end
+@each(p in opts('external_place'))
+<option value="ext:{{ p.value }}" {{ m.from == 'ext:' + p.value ? 'selected' : '' }}>{{ p.label }}</option>
+@end
+</select></div>
+<div><label>به (مقصد)</label><select name="to">
+<option value="fund" {{ m.to == 'fund' ? 'selected' : '' }}>صندوق (صدور واحد)</option>
+@each(a in st.areas)
+<option value="area:{{ a.id }}" {{ m.to == 'area:' + a.id ? 'selected' : '' }}>حوزه: {{ a.name }}</option>
+@end
+@each(p in opts('external_place'))
+<option value="ext:{{ p.value }}" {{ m.to == 'ext:' + p.value ? 'selected' : '' }}>{{ p.label }}</option>
+@end
+</select></div>
+<div><label>روش تقسیم</label><select name="method">
+@each(mt in opts('split_method'))
+<option value="{{ mt.value }}" {{ m.method == mt.value ? 'selected' : '' }}>{{ mt.label }}</option>
+@end
+</select></div>
+<div><label>مبلغ کل (ریال) — برای «مبلغ جداگانه» لازم نیست</label><input class="money" inputmode="numeric" name="total" value="{{ money(m.total) }}"></div>
+<div><label>تاریخ شمسی</label><input name="occurredOn" dir="ltr" value="{{ m.date }}"></div>
+<div><label>یادداشت</label><input name="note" value="{{ m.note }}"></div></div>
+<div class="sc"><table><tr><th>انتخاب</th><th>سرمایه‌گذار</th><th class="num">مقدار (درصد، مبلغ یا وزن بسته به روش؛ در روش‌های خودکار خالی)</th></tr>
+@each(i in st.investors)
+<tr><td><input type="checkbox" name="sel_{{ i.id }}" style="width:auto" {{ amounts.has(i.id) ? 'checked' : '' }}></td><td>{{ i.name }}</td><td><input class="money" inputmode="decimal" name="val_{{ i.id }}" style="max-width:220px" value="{{ amounts.has(i.id) && m.method == 'amount' ? money(amounts.get(i.id)) : '' }}"></td></tr>
+@end
+</table></div>
+<p><button>ذخیرهٔ ویرایش</button> <a href="/movements">انصراف</a></p></form></div>
+@include('partials/foot')

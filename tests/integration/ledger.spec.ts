@@ -169,3 +169,66 @@ test.group('audit trail', (group) => {
     assert.notInclude(row.detail!, 'secret')
   })
 })
+
+test.group('unit split (NAV to 1000)', (group) => {
+  group.each.setup(resetData)
+
+  test('splitFactor: NAV / target; null when nothing to do or NAV invalid', async ({ assert }) => {
+    const { splitFactor } = await import('#services/unit_split')
+    assert.approximately(splitFactor(22292.1887, 1000)!, 22.2921887, 1e-9)
+    assert.isNull(splitFactor(1000, 1000))
+    assert.isNull(splitFactor(0, 1000))
+    assert.isNull(splitFactor(Number.NaN, 1000))
+    assert.approximately(splitFactor(500, 1000)!, 0.5, 1e-12) // reverse split
+  })
+
+  test('splitting brings NAV to 1000 and changes nobody\'s value, cost, fee or reconciliation', async ({ assert }) => {
+    const { applyUnitSplit, splitFactor } = await import('#services/unit_split')
+    const { investors } = await seedFund(22_292_000, [['A', 700], ['B', 300]])
+    await issue(investors[0].id, 5_000_000, 22292, '2026-04-01')
+    const before = await loadState()
+    const nav0 = before.current.summary.nav
+    assert.isAbove(nav0, 20000)
+    const valueOf = (st: typeof before) => st.current.rows.map((r) => [r.name, r.fund.value, r.cost, r.share])
+    const f = splitFactor(nav0, 1000)!
+    const counts = await applyUnitSplit(f)
+    assert.equal(counts.investors, 2)
+    assert.equal(counts.transactions, 1)
+    const after = await loadState()
+    assert.approximately(after.current.summary.nav, 1000, 1e-6)
+    assert.approximately(after.current.totalUnits, before.current.totalUnits * f, 1e-6)
+    const [b, a] = [valueOf(before), valueOf(after)]
+    for (let i = 0; i < b.length; i++) {
+      assert.equal(a[i][0], b[i][0])
+      assert.approximately(a[i][1] as number, b[i][1] as number, 1, 'value unchanged')
+      assert.approximately(a[i][2] as number, b[i][2] as number, 1e-6, 'cost unchanged')
+      assert.approximately(a[i][3] as number, b[i][3] as number, 1e-9, 'share unchanged')
+    }
+    assert.approximately(after.current.summary.fee, before.current.summary.fee, 0)
+    const rec = reconcile(after, TODAY)
+    assert.equal(rec.errors, 0, JSON.stringify(rec.checks.filter((c) => c.level === 'error')))
+    // A second split to the same target has nothing to do.
+    assert.isNull(splitFactor(after.current.summary.nav, 1000))
+  })
+})
+
+test.group('period continuity check uses the fee actually settled', (group) => {
+  group.each.setup(resetData)
+
+  test('closed period: next opening = closing - settle receipt; no settle receipt means carried unchanged', async ({ assert }) => {
+    const Period = (await import('#models/period')).default
+    const FeeReceipt = (await import('#models/fee_receipt')).default
+    const rates = { fixedRate: 20, mgmtRate: 1, excessRate: 10, feeCap: 100, discount: 0, mgmtRate2: 1, excessRate2: 20 }
+    const mk = (label: string, s: string, e: string, status: string, begin: number, close: number) =>
+      Period.create({ label, startOn: s, endOn: e, status, months: 12, beginMarket: begin, openingDeposits: 0, openingWithdrawals: 0, marketValueBase: close, valuationOn: e, ...rates })
+    await mk('A', '2025-03-21', '2026-03-20', 'closed', 1_000_000_000, 1_200_000_000)
+    await mk('B', '2026-03-21', '2027-03-20', 'open', 1_200_000_000, 1_200_000_000)
+    let rec = reconcile(await loadState(), TODAY)
+    assert.equal(rec.checks.find((c) => c.id === 'period-continuity')!.level, 'ok')
+    await FeeReceipt.create({ scope: 'fund', investorId: null, amount: 50_000_000, occurredOn: '2026-03-20', method: 'settle' })
+    rec = reconcile(await loadState(), TODAY)
+    const c = rec.checks.find((x) => x.id === 'period-continuity')!
+    assert.equal(c.level, 'warning')
+    assert.include(c.items[0], '1,150,000,000')
+  })
+})

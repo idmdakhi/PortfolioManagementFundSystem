@@ -6,10 +6,16 @@
 @if(auth.user)
 <div class="top noprint"><div><h1>صندوق سبدگردانی خانوادگی</h1><div class="sub">{{ auth.user.fullName || auth.user.email }} ({{ auth.user.role == 'admin' ? 'مدیر' : 'فقط مشاهده' }})</div></div>
 <div class="acts"><button type="button" id="fs" class="o sm" hidden>تمام‌صفحه</button><form method="POST" action="/logout">{{ csrfField() }}<button class="o sm">خروج</button></form></div></div>
-<nav class="noprint">
-<a href="/" class="{{ nav == 'dash' ? 'on' : '' }}">صندوق</a>
-<a href="/periods" class="{{ nav == 'pl' ? 'on' : '' }}">سود و زیان صندوق</a>
-<a href="/personal" class="{{ nav == 'ps' ? 'on' : '' }}">حساب‌های شخصی</a>
+@let(grp = ['ps', 'psd', 'psf'].includes(nav) ? 'personal' : ['rec', 'fm', 'set', 'op', 'bk', 'au'].includes(nav) ? 'system' : 'fund')
+<nav class="noprint main">
+<a href="/" class="{{ grp == 'fund' ? 'on' : '' }}">صندوق</a>
+<a href="/personal" class="{{ grp == 'personal' ? 'on' : '' }}">حساب شخصی</a>
+<a href="/reconciliation" class="{{ grp == 'system' ? 'on' : '' }}">سیستم</a>
+</nav>
+<nav class="noprint subnav">
+@if(grp == 'fund')
+<a href="/" class="{{ nav == 'dash' ? 'on' : '' }}">داشبورد</a>
+<a href="/periods" class="{{ nav == 'pl' ? 'on' : '' }}">سود و زیان</a>
 <a href="/investors" class="{{ nav == 'inv' ? 'on' : '' }}">سرمایه‌گذاران</a>
 <a href="/transactions" class="{{ nav == 'tx' ? 'on' : '' }}">تراکنش‌ها</a>
 <a href="/movements" class="{{ nav == 'mv' ? 'on' : '' }}">حرکت گروهی</a>
@@ -17,6 +23,11 @@
 <a href="/dividends" class="{{ nav == 'div' ? 'on' : '' }}">سود تقسیمی</a>
 <a href="/valuations" class="{{ nav == 'val' ? 'on' : '' }}">ارزش‌گذاری و دفتر</a>
 <a href="/fees" class="{{ nav == 'fee' ? 'on' : '' }}">کارمزدها</a>
+@elseif(grp == 'personal')
+<a href="/personal" class="{{ nav == 'ps' ? 'on' : '' }}">حساب‌ها</a>
+<a href="/personal/dividends" class="{{ nav == 'psd' ? 'on' : '' }}">سود تقسیمی</a>
+<a href="/personal/fees" class="{{ nav == 'psf' ? 'on' : '' }}">کارمزدها</a>
+@else
 <a href="/reconciliation" class="{{ nav == 'rec' ? 'on' : '' }}">تطبیق</a>
 <a href="/formulas" class="{{ nav == 'fm' ? 'on' : '' }}">فرمول‌ها</a>
 @if(auth.user.role == 'admin')
@@ -24,6 +35,7 @@
 <a href="/options" class="{{ nav == 'op' ? 'on' : '' }}">فهرست‌ها</a>
 <a href="/backup" class="{{ nav == 'bk' ? 'on' : '' }}">پشتیبان‌گیری</a>
 <a href="/audit" class="{{ nav == 'au' ? 'on' : '' }}">سابقه</a>
+@end
 @end
 </nav>
 @end

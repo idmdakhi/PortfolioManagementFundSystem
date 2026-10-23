@@ -18,8 +18,10 @@ export type ScannedRoutes = {
     'areas.index': { paramsTuple?: []; params?: {} }
     'transactions.index': { paramsTuple?: []; params?: {} }
     'dividends.index': { paramsTuple?: []; params?: {} }
+    'dividends.personal_index': { paramsTuple?: []; params?: {} }
     'formulas.show': { paramsTuple?: []; params?: {} }
     'fees.index': { paramsTuple?: []; params?: {} }
+    'fees.personal_index': { paramsTuple?: []; params?: {} }
     'valuations.index': { paramsTuple?: []; params?: {} }
     'transactions.export': { paramsTuple?: []; params?: {} }
     'reconciliation.index': { paramsTuple?: []; params?: {} }
@@ -53,7 +55,6 @@ export type ScannedRoutes = {
     'areas.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'valuations.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'valuations.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
-    'settings.closed_edits': { paramsTuple?: []; params?: {} }
     'fees.store': { paramsTuple?: []; params?: {} }
     'fees.transfer': { paramsTuple?: []; params?: {} }
     'fees.manager': { paramsTuple?: []; params?: {} }
@@ -61,6 +62,8 @@ export type ScannedRoutes = {
     'fees.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'fees.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'movements.store': { paramsTuple?: []; params?: {} }
+    'movements.edit': { paramsTuple: [ParamValue]; params: {'batch': ParamValue} }
+    'movements.update': { paramsTuple: [ParamValue]; params: {'batch': ParamValue} }
     'movements.destroy': { paramsTuple: [ParamValue]; params: {'batch': ParamValue} }
     'areas.store': { paramsTuple?: []; params?: {} }
     'areas.valuation': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -71,6 +74,7 @@ export type ScannedRoutes = {
     'settings.edit': { paramsTuple?: []; params?: {} }
     'settings.update': { paramsTuple?: []; params?: {} }
     'settings.bank_rate': { paramsTuple?: []; params?: {} }
+    'settings.split': { paramsTuple?: []; params?: {} }
     'valuations.store': { paramsTuple?: []; params?: {} }
     'valuations.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'periods.close': { paramsTuple?: []; params?: {} }
@@ -88,8 +92,10 @@ export type ScannedRoutes = {
     'areas.index': { paramsTuple?: []; params?: {} }
     'transactions.index': { paramsTuple?: []; params?: {} }
     'dividends.index': { paramsTuple?: []; params?: {} }
+    'dividends.personal_index': { paramsTuple?: []; params?: {} }
     'formulas.show': { paramsTuple?: []; params?: {} }
     'fees.index': { paramsTuple?: []; params?: {} }
+    'fees.personal_index': { paramsTuple?: []; params?: {} }
     'valuations.index': { paramsTuple?: []; params?: {} }
     'transactions.export': { paramsTuple?: []; params?: {} }
     'reconciliation.index': { paramsTuple?: []; params?: {} }
@@ -104,6 +110,7 @@ export type ScannedRoutes = {
     'areas.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'valuations.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'fees.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'movements.edit': { paramsTuple: [ParamValue]; params: {'batch': ParamValue} }
     'dividends.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'settings.edit': { paramsTuple?: []; params?: {} }
   }
@@ -120,8 +127,10 @@ export type ScannedRoutes = {
     'areas.index': { paramsTuple?: []; params?: {} }
     'transactions.index': { paramsTuple?: []; params?: {} }
     'dividends.index': { paramsTuple?: []; params?: {} }
+    'dividends.personal_index': { paramsTuple?: []; params?: {} }
     'formulas.show': { paramsTuple?: []; params?: {} }
     'fees.index': { paramsTuple?: []; params?: {} }
+    'fees.personal_index': { paramsTuple?: []; params?: {} }
     'valuations.index': { paramsTuple?: []; params?: {} }
     'transactions.export': { paramsTuple?: []; params?: {} }
     'reconciliation.index': { paramsTuple?: []; params?: {} }
@@ -136,6 +145,7 @@ export type ScannedRoutes = {
     'areas.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'valuations.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'fees.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'movements.edit': { paramsTuple: [ParamValue]; params: {'batch': ParamValue} }
     'dividends.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'settings.edit': { paramsTuple?: []; params?: {} }
   }
@@ -162,13 +172,13 @@ export type ScannedRoutes = {
     'areas.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'areas.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'valuations.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
-    'settings.closed_edits': { paramsTuple?: []; params?: {} }
     'fees.store': { paramsTuple?: []; params?: {} }
     'fees.transfer': { paramsTuple?: []; params?: {} }
     'fees.manager': { paramsTuple?: []; params?: {} }
     'fees.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'fees.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'movements.store': { paramsTuple?: []; params?: {} }
+    'movements.update': { paramsTuple: [ParamValue]; params: {'batch': ParamValue} }
     'movements.destroy': { paramsTuple: [ParamValue]; params: {'batch': ParamValue} }
     'areas.store': { paramsTuple?: []; params?: {} }
     'areas.valuation': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -177,6 +187,7 @@ export type ScannedRoutes = {
     'dividends.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'settings.update': { paramsTuple?: []; params?: {} }
     'settings.bank_rate': { paramsTuple?: []; params?: {} }
+    'settings.split': { paramsTuple?: []; params?: {} }
     'valuations.store': { paramsTuple?: []; params?: {} }
     'valuations.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'periods.close': { paramsTuple?: []; params?: {} }

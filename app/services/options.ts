@@ -49,6 +49,3 @@ export const managerInvestorId = (): number | null => findOption('setting', 'man
 
 /** Current bank interest, used as the fixed rate for customers and the fund (percent per year). */
 export const bankRate = (): number | null => findOption('setting', 'bank_rate')?.extra.rate ?? null
-
-/** When on, data in closed periods can be created, edited and deleted (admin switch in settings). */
-export const closedEditsAllowed = (): boolean => findOption('setting', 'allow_closed_edit')?.extra.on === true

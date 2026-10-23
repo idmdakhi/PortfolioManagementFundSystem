@@ -13,7 +13,6 @@ const DATA_TABLES = [
 /** Empties all business data (keeps users and the option rows the migrations seeded) and the settings. */
 export async function resetData() {
   for (const t of DATA_TABLES) await db.from(t).delete()
-  await db.from('options').where('list', 'setting').where('value', 'allow_closed_edit').delete()
   invalidateOptions()
 }
 

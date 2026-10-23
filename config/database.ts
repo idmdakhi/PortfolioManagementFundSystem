@@ -15,7 +15,7 @@ import { defineConfig } from '@adonisjs/lucid'
  */
 const dbFile = (() => {
   const configured = env.get('DB_PATH')
-  if (!configured) return app.seedersPath('db.sqlite3')
+  if (!configured) return app.tmpPath('db/db.sqlite3')
   const file = isAbsolute(configured) ? configured : app.makePath(configured)
   mkdirSync(dirname(file), { recursive: true })
   return file

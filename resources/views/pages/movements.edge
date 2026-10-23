@@ -40,7 +40,8 @@
 <tr><td>{{ jd(g.date) }}</td><td>{{ g.from }}</td><td>{{ g.to }}</td><td>{{ g.method }}</td><td>{{ g.note || '' }}</td><td class="num">{{ fa(g.people.size) }}</td><td class="num {{ cls(g.fund) }}">{{ fa(g.fund) }}</td><td class="num {{ cls(g.area) }}">{{ fa(g.area) }}</td>
 <td>
 @if(auth.user.role == 'admin' && !g.locked)
-<form method="POST" action="/movements/{{ g.batchId }}/delete" data-confirm="کل این گروه حذف شود؟">{{ csrfField() }}<button class="sm danger">حذف گروه</button></form>
+<div class="acts"><a class="btn sm o" href="/movements/{{ g.batchId }}/edit">ویرایش</a>
+<form method="POST" action="/movements/{{ g.batchId }}/delete" data-confirm="کل این گروه حذف شود؟">{{ csrfField() }}<button class="sm danger">حذف گروه</button></form></div>
 @elseif(g.locked)
 <span class="sub">قفل (دورهٔ بسته)</span>
 @end

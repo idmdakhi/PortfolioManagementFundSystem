@@ -1,14 +1,15 @@
 @include('partials/head')
-<div class="card"><h2>ویرایش کارمزد ثبت‌شده ({{ feeMethodFa(f.method) }})</h2>
-<form method="POST" action="/fees/{{ f.id }}">{{ csrfField() }}<div class="g">
-<div><label>نوع</label><select name="scope"><option value="fund" {{ f.scope == 'fund' ? 'selected' : '' }}>کارمزد صندوق</option><option value="personal" {{ f.scope == 'personal' ? 'selected' : '' }}>کارمزد حساب شخصی</option></select></div>
-<div><label>سرمایه‌گذار (فقط حساب شخصی)</label><select name="investorId"><option value="">—</option>
+<div class="card"><h2>ویرایش کارمزد ثبت‌شده — {{ f.scope == 'personal' ? 'حساب شخصی' : 'صندوق' }} ({{ feeMethodFa(f.method) }})</h2>
+<form method="POST" action="/fees/{{ f.id }}">{{ csrfField() }}<input type="hidden" name="scope" value="{{ f.scope }}"><div class="g">
+@if(f.scope == 'personal')
+<div><label>سرمایه‌گذار</label><select name="investorId" required><option value="">—</option>
 @each(i in st.investors)
 <option value="{{ i.id }}" {{ i.id == f.investorId ? 'selected' : '' }}>{{ i.name }}</option>
 @end
 </select></div>
+@end
 <div><label>مبلغ (ریال)</label><input class="money" inputmode="numeric" name="amount" value="{{ money(f.amount) }}" required></div>
 <div><label>تاریخ شمسی</label><input name="occurredOn" dir="ltr" value="{{ jraw(f.occurredOn) }}"></div>
 <div><label>یادداشت</label><input name="note" value="{{ f.note || '' }}"></div></div>
-<p><button>ذخیره</button> <a href="/fees">بازگشت</a></p></form></div>
+<p><button>ذخیره</button> <a href="{{ base }}">بازگشت</a></p></form></div>
 @include('partials/foot')

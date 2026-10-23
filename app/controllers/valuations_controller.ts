@@ -46,7 +46,7 @@ export default class ValuationsController {
       const locked = !canEdit(st, v.occurredOn) || v.kind !== 'value'
       ev.push({
         date: v.occurredOn, order: v.id, type: 'valuation',
-        title: v.kind === 'open' ? 'ارزش ابتدای دوره' : v.kind === 'close' ? 'ارزش پایانی دوره' : 'ارزش‌گذاری',
+        title: v.kind === 'open' ? 'ارزش ابتدای دوره' : v.kind === 'close' ? 'ارزش پایانی دوره' : 'ارزش‌گذاری صندوق',
         amount: v.marketValue, note: v.note, valId: v.id, deletable: !locked,
       })
     }
@@ -103,7 +103,7 @@ export default class ValuationsController {
     }
     if (!v) return fail('مورد پیدا نشد.')
     if (v.kind !== 'value') return fail('ارزش ابتدا و پایان دوره توسط خود برنامه مدیریت می‌شود.')
-    if (!canEdit(st, v.occurredOn)) return fail('این ارزش‌گذاری در دورهٔ بسته است. برای حذف، «ویرایش دوره‌های بسته» را در تنظیمات روشن کنید.')
+    if (!canEdit(st, v.occurredOn)) return fail('این ارزش‌گذاری در دورهٔ بسته است و قفل شده.')
     const owner = reportOf(st, v.occurredOn)!.period
     const gone = await Valuation.findOrFail(v.id)
     const before = gone.serialize()
@@ -134,7 +134,7 @@ export default class ValuationsController {
       return response.redirect(to)
     }
     if (!v || v.kind !== 'value') return fail('مورد پیدا نشد.', '/valuations')
-    if (!canEdit(st, v.occurredOn)) return fail('این ارزش‌گذاری در دورهٔ بسته است. برای ویرایش، «ویرایش دوره‌های بسته» را در تنظیمات روشن کنید.', '/valuations')
+    if (!canEdit(st, v.occurredOn)) return fail('این ارزش‌گذاری در دورهٔ بسته است و قفل شده.', '/valuations')
     const raw = String(b.marketValue ?? '').trim()
     const value = Math.round(Number(raw))
     if (raw === '' || !(value >= 0)) return fail('ارزش روز را وارد کنید.')

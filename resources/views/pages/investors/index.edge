@@ -1,8 +1,8 @@
 @include('partials/head')
-<div class="sub">دورهٔ {{ rep.period.label }}</div>
+<div class="sub">حساب سرمایه‌گذاران در صندوق — دورهٔ {{ rep.period.label }} (حساب شخصی در بخش «حساب شخصی»)</div>
 <div class="card sc"><table><tr><th>نام</th><th class="num">واحد</th><th class="num">سهم</th><th class="num">بهای تمام‌شده</th><th class="num">ارزش (پس از کارمزد)</th><th class="num">سود خالص دوره</th></tr>
 @each(r in rep.rows)
-<tr><td>{{ r.name }} <span class="sub"><a href="/investors/{{ r.id }}">صندوق</a> · <a href="/investors/{{ r.id }}/personal">شخصی</a> · <a href="/investors/{{ r.id }}/report">گزارش</a>
+<tr><td>{{ r.name }} <span class="sub"><a href="/investors/{{ r.id }}">صندوق</a> · <a href="/investors/{{ r.id }}/report">گزارش</a>
 @if(auth.user.role == 'admin')
  · <a href="/investors/{{ r.id }}/edit">ویرایش</a>
 @end

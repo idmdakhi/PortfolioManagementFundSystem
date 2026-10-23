@@ -5,8 +5,8 @@ import AreaEntry from '#models/area_entry'
 import Movement from '#models/movement'
 import { findOption, optLabel } from '#services/options'
 import { loadState, ledgerOk, areaLedgerOk, type LedgerTx, type AreaMove } from '#services/fund_state'
-import { parseJalali, todayIso, todayJalali } from '#services/jalali'
-import { canEdit, reportOf, NOT_EDITABLE } from '#services/period_guard'
+import { parseJalali, todayIso, todayJalali, toJalaliStr } from '#services/jalali'
+import { canEdit, reportOf, NOT_EDITABLE, CLOSED_LOCKED } from '#services/period_guard'
 import { splitAmount, type SplitMode } from '#services/splitter'
 import { audit } from '#services/audit'
 
@@ -62,13 +62,73 @@ export default class MovementsController {
     return view.render('pages/movements', { nav: 'mv', st, names, areaNames, list, today: todayJalali() })
   }
 
-  async store({ request, response, session, auth }: HttpContext) {
+  /** Edit form of one group: the same form as creating, pre-filled from what was saved. */
+  async edit({ params, view, response, session }: HttpContext) {
+    const st = await loadState()
+    const id = String(params.batch)
+    const gTx = st.txs.filter((t) => t.batchId === id)
+    const gEn = st.areaEntries.filter((e) => e.batchId === id)
+    const meta = await Movement.findBy('batchId', id)
+    if (!gTx.length && !gEn.length) {
+      session.flash('error', 'گروه پیدا نشد.')
+      return response.redirect('/movements')
+    }
+    if (gTx.some((t) => !canEdit(st, t.occurredOn))) {
+      session.flash('error', CLOSED_LOCKED)
+      return response.redirect('/movements')
+    }
+    // Amount per investor: from the fund transactions, else from the area deposits (or withdrawals).
+    const amounts = new Map<number, number>()
+    const src = gTx.length ? gTx.map((t) => ({ investorId: t.investorId, amount: t.amount })) : (gEn.some((e) => e.type === 'deposit') ? gEn.filter((e) => e.type === 'deposit') : gEn)
+    for (const x of src) amounts.set(x.investorId, (amounts.get(x.investorId) ?? 0) + x.amount)
+    const first = gTx[0] ?? gEn[0]
+    const out = 'ext:external'
+    const areaRef = gEn[0] ? `area:${gEn[0].areaId}` : out
+    // Without saved metadata (older groups) the direction is read from the rows themselves.
+    const dir = gTx[0] ? (gTx[0].type === 'issue' ? { from: out, to: 'fund' } : { from: 'fund', to: out }) : gEn[0]?.type === 'withdraw' ? { from: areaRef, to: out } : { from: out, to: areaRef }
+    const m = {
+      batchId: id,
+      from: meta?.fromRef ?? dir.from,
+      to: meta?.toRef ?? dir.to,
+      method: meta?.method ?? 'amount',
+      total: [...amounts.values()].reduce((a, v) => a + v, 0),
+      date: toJalaliStr(first.occurredOn),
+      note: first.note ?? '',
+    }
+    return view.render('pages/movement_edit', { nav: 'mv', st, m, amounts, today: todayJalali() })
+  }
+
+  async store(ctx: HttpContext) {
+    return this.save(ctx, null)
+  }
+
+  async update(ctx: HttpContext) {
+    return this.save(ctx, String(ctx.params.batch))
+  }
+
+  /** Creates a group (editBatch = null) or replaces an existing group with the same id. */
+  private async save({ request, response, session, auth }: HttpContext, editBatch: string | null) {
     const b = request.all()
     const back = (msg: string) => {
       session.flash('error', msg)
-      return response.redirect('/movements')
+      return response.redirect(editBatch ? `/movements/${editBatch}/edit` : '/movements')
     }
     const st = await loadState()
+    const oldTxs = editBatch ? st.txs.filter((t) => t.batchId === editBatch) : []
+    const oldEntries = editBatch ? st.areaEntries.filter((e) => e.batchId === editBatch) : []
+    const oldMeta = editBatch ? await Movement.findBy('batchId', editBatch) : null
+    if (editBatch) {
+      // A missing or locked group has no edit page to go back to: send the user to the list.
+      const toList = (msg: string) => {
+        session.flash('error', msg)
+        return response.redirect('/movements')
+      }
+      if (!oldTxs.length && !oldEntries.length) return toList('گروه پیدا نشد.')
+      if (oldTxs.some((t) => !canEdit(st, t.occurredOn))) return toList(CLOSED_LOCKED)
+    }
+    // Everything except the group being edited: the new rows are checked against this.
+    const txsBase = st.txs.filter((t) => t.batchId !== editBatch || !editBatch)
+    const entriesBase = st.areaEntries.filter((e) => e.batchId !== editBatch || !editBatch)
     const from = parsePlace(b.from)
     const to = parsePlace(b.to)
     if (!from || !to) return back('مبدأ و مقصد را انتخاب کنید.')
@@ -112,7 +172,7 @@ export default class MovementsController {
       if (!(nav > 0)) return back('NAV معتبر نیست.')
     }
 
-    const batchId = newBatchId()
+    const batchId = editBatch ?? newBatchId()
     const note = String(b.note || '').trim() || null
     const txType = from.kind === 'fund' ? 'redeem' : 'issue'
     const txs: LedgerTx[] = usesFund
@@ -127,14 +187,19 @@ export default class MovementsController {
       if (to.kind === 'area') moves.push({ id: 2e9 + i, areaId: to.id, investorId: id, type: 'deposit', amount: split.amounts[i], occurredOn: date, note, batchId })
     })
 
-    if (txs.length && !ledgerOk(st, [...st.txs, ...txs])) return back('واحدهای کافی در صندوق برای این برداشت وجود ندارد.')
-    if (moves.length && !areaLedgerOk([...st.areaEntries, ...moves])) return back('موجودی کافی در حوزهٔ مبدأ وجود ندارد.')
+    if ((txs.length || oldTxs.length) && !ledgerOk(st, [...txsBase, ...txs])) return back('واحدهای کافی در صندوق برای این برداشت وجود ندارد.')
+    if ((moves.length || oldEntries.length) && !areaLedgerOk([...entriesBase, ...moves])) return back('موجودی کافی در حوزهٔ مبدأ وجود ندارد.')
 
     await db.transaction(async (trx) => {
+      if (editBatch) {
+        await trx.from('transactions').where('batch_id', editBatch).delete()
+        await trx.from('area_entries').where('batch_id', editBatch).delete()
+        await trx.from('movements').where('batch_id', editBatch).delete()
+      }
       await Movement.create(
         {
           batchId, fromRef: refOf(from), toRef: refOf(to), method: method.value,
-          total: split.amounts.reduce((a, v) => a + v, 0), occurredOn: date, note, createdBy: auth.user!.id,
+          total: split.amounts.reduce((a, v) => a + v, 0), occurredOn: date, note, createdBy: oldMeta?.createdBy ?? auth.user!.id,
         },
         { client: trx }
       )
@@ -154,9 +219,13 @@ export default class MovementsController {
     const total = split.amounts.reduce((a, v) => a + v, 0)
     await audit.change(
       { auth, request },
-      { action: 'movement.create', entity: 'movement', entityId: batchId, after: { from: refOf(from), to: refOf(to), method: method.value, date, investors: ids, amounts: split.amounts, total } }
+      {
+        action: editBatch ? 'movement.update' : 'movement.create', entity: 'movement', entityId: batchId,
+        before: editBatch ? { transactions: oldTxs, areaEntries: oldEntries, meta: oldMeta?.serialize() ?? null } : undefined,
+        after: { from: refOf(from), to: refOf(to), method: method.value, date, investors: ids, amounts: split.amounts, total },
+      }
     )
-    session.flash('ok', `حرکت برای ${ids.length} نفر و جمع ${Math.round(total).toLocaleString('fa-IR')} ریال ثبت شد.`)
+    session.flash('ok', `حرکت برای ${ids.length} نفر و جمع ${Math.round(total).toLocaleString('fa-IR')} ریال ${editBatch ? 'ویرایش شد' : 'ثبت شد'}.`)
     return response.redirect('/movements')
   }
 
@@ -172,7 +241,7 @@ export default class MovementsController {
     const gEn = st.areaEntries.filter((e) => e.batchId === id)
     if (!gTx.length && !gEn.length) return fail('گروه پیدا نشد.')
     if (gTx.some((t) => !canEdit(st, t.occurredOn))) {
-      return fail('این گروه در دورهٔ بسته است. برای حذف، «ویرایش دوره‌های بسته» را در تنظیمات روشن کنید.')
+      return fail('این گروه در دورهٔ بسته است و قفل شده.')
     }
     if (!ledgerOk(st, st.txs.filter((t) => t.batchId !== id))) return fail('با حذف این گروه، واحدهای یک سرمایه‌گذار منفی می‌شود.')
     if (!areaLedgerOk(st.areaEntries.filter((e) => e.batchId !== id))) return fail('با حذف این گروه، موجودی یک حوزه منفی می‌شود.')

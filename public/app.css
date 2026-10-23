@@ -4,6 +4,8 @@
 .w{max-width:none;width:100%;margin:0;padding:16px clamp(12px,2vw,32px)}h1{font-size:20px;margin:0}h2{font-size:15px;margin:0 0 10px}a{color:var(--ac)}
 .top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.sub{color:var(--mut);font-size:12px}
 nav{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);margin:10px 0 14px}
+nav.main{margin-bottom:0;border-bottom:2px solid var(--line)}nav.main a{font-size:16px;font-weight:700;padding:10px 22px}
+nav.subnav{margin-top:0;gap:2px;background:var(--card)}nav.subnav a{font-size:14px;padding:7px 12px}
 nav a{color:var(--mut);text-decoration:none;border-bottom:3px solid transparent;padding:8px 12px;white-space:nowrap}nav a.on{color:var(--ac);border-color:var(--ac);font-weight:600}
 .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
 .g{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}

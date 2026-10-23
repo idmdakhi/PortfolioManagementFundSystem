@@ -7,7 +7,6 @@ import { loadState } from '#services/fund_state'
 import { faDigits, todayJalali } from '#services/jalali'
 import { investorValidator, personalValidator } from '#validators/fund'
 import { audit } from '#services/audit'
-import { closedEditsAllowed } from '#services/options'
 
 export default class InvestorsController {
   async index({ view }: HttpContext) {
@@ -90,8 +89,8 @@ export default class InvestorsController {
       session.flash('error', 'دورهٔ انتخاب‌شده پیدا نشد.')
       return response.redirect(`/investors/${params.id}/personal`)
     }
-    if (period.status === 'closed' && !closedEditsAllowed()) {
-      session.flash('error', 'این دوره بسته است. برای ویرایش حساب شخصی آن، «ویرایش دوره‌های بسته» را در تنظیمات روشن کنید.')
+    if (period.status === 'closed') {
+      session.flash('error', 'این دوره بسته است و حساب شخصی آن قفل شده.')
       return response.redirect(`/investors/${params.id}/personal`)
     }
     const prev = await PersonalAccount.query().where('investor_id', Number(params.id)).where('period_id', periodId).first()

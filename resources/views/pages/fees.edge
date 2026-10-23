@@ -28,42 +28,24 @@
 @end
 
 @if(auth.user.role == 'admin')
-<div class="card"><h2>ثبت کارمزد دریافتی</h2>
-<div class="sub">«ثبت سابقه» فقط یک یادداشت حسابداری است و محاسبات را تغییر نمی‌دهد (مناسب کارمزد دوره‌های گذشته و حساب‌های شخصی). «پرداخت نقدی» فقط برای دورهٔ باز و کارمزد صندوق است: از ارزش صندوق و مانده کارمزد کم می‌شود.</div>
-<form method="POST" action="/fees"><br>{{ csrfField() }}<div class="g">
-<div><label>نوع</label><select name="scope"><option value="fund">کارمزد صندوق</option><option value="personal">کارمزد حساب شخصی</option></select></div>
-<div><label>سرمایه‌گذار (فقط حساب شخصی)</label><select name="investorId"><option value="">—</option>
-@each(i in st.investors)
-<option value="{{ i.id }}">{{ i.name }}</option>
-@end
-</select></div>
-<div><label>روش (برای کارمزد صندوق)</label><select name="method"><option value="record">ثبت سابقه</option><option value="cash">پرداخت نقدی از صندوق</option></select></div>
+<div class="card"><h2>ثبت کارمزد دریافتی صندوق</h2>
+<div class="sub">«ثبت سابقه» فقط یک یادداشت حسابداری است و محاسبات را تغییر نمی‌دهد. «پرداخت نقدی» فقط برای دورهٔ باز است: از ارزش صندوق و مانده کارمزد کم می‌شود. کارمزد حساب‌های شخصی در صفحهٔ «کارمزد حساب شخصی» ثبت می‌شود.</div>
+<form method="POST" action="/fees"><br>{{ csrfField() }}<input type="hidden" name="scope" value="fund"><div class="g">
+<div><label>روش</label><select name="method"><option value="record">ثبت سابقه</option><option value="cash">پرداخت نقدی از صندوق</option></select></div>
 <div><label>مبلغ (ریال)</label><input class="money" inputmode="numeric" name="amount" required></div>
 <div><label>تاریخ شمسی</label><input name="occurredOn" dir="ltr" value="{{ today }}"></div>
 <div><label>یادداشت</label><input name="note"></div></div>
 <p><button>ثبت</button></p></form></div>
 @end
 
-<div class="chips">
-@each(r in st.reports)
-<a href="/fees?p={{ r.period.id }}" class="{{ r.period.id == rep.period.id ? 'on' : '' }}">{{ r.period.label }}</a>
-@end
-</div>
-<div class="card sc"><h2>کارمزد حساب‌های شخصی — دورهٔ {{ rep.period.label }}</h2>
-<table><tr><th>نام</th><th class="num">کارمزد محاسبه‌شده</th><th class="num">دریافت‌شده</th><th class="num">مانده</th></tr>
-@each(r in rep.rows)
-@if(r.personal)
-<tr><td>{{ r.name }}</td><td class="num">{{ fa(r.personal.fee) }}</td><td class="num">{{ fa(r.personalFeeReceived) }}</td><td class="num {{ cls(0 - (r.personal.fee - r.personalFeeReceived)) }}">{{ fa(r.personal.fee - r.personalFeeReceived) }}</td></tr>
-@end
-@end
-</table></div>
-
-<div class="card sc"><h2>کارمزدهای ثبت‌شده</h2>
-<table><tr><th>تاریخ</th><th>دوره</th><th>نوع</th><th>سرمایه‌گذار</th><th>روش</th><th class="num">مبلغ</th><th>یادداشت</th><th></th></tr>
+<div class="card sc"><h2>کارمزدهای ثبت‌شدهٔ صندوق</h2>
+<table><tr><th>تاریخ</th><th>دوره</th><th>روش</th><th class="num">مبلغ</th><th>یادداشت</th><th></th></tr>
 @each(f in list)
-<tr><td>{{ jd(f.occurredOn) }}</td><td>{{ f.periodLabel }}</td><td>{{ f.scope == 'fund' ? 'صندوق' : 'حساب شخصی' }}</td><td>{{ f.investorId ? names.get(f.investorId) : '—' }}</td><td>{{ feeMethodFa(f.method) }}</td><td class="num">{{ fa(f.amount) }}</td><td>{{ f.note || '' }}</td>
+<tr><td>{{ jd(f.occurredOn) }}</td><td>{{ f.periodLabel }}</td><td>{{ feeMethodFa(f.method) }}</td><td class="num">{{ fa(f.amount) }}</td><td>{{ f.note || '' }}</td>
 <td>
-@if(auth.user.role == 'admin')
+@if(f.locked)
+<span class="sub">قفل (دورهٔ بسته)</span>
+@elseif(auth.user.role == 'admin')
 <div class="acts">
 @if(f.method == 'record' || f.method == 'settle')
 <a class="btn sm o" href="/fees/{{ f.id }}/edit">ویرایش</a>
@@ -72,7 +54,7 @@
 @end
 </td></tr>
 @else
-<tr><td colspan="8" class="sub">هنوز کارمزدی ثبت نشده.</td></tr>
+<tr><td colspan="6" class="sub">هنوز کارمزدی ثبت نشده.</td></tr>
 @end
 </table></div>
 @include('partials/foot')
